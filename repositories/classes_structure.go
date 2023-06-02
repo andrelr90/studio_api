@@ -55,7 +55,7 @@ func (cs *ClassesStructure) UpdateClass(class  *models.Class) {
 		}
 	}
 
-	// As the list is sorted, updates are done by removing and reinserting the class in the list. Cascade is not activated in this case.
+	// As the slice is sorted, updates are done by removing and reinserting the class in the slice. Cascade is not activated in this case.
 	cs.Remove(class.ID, false)
 	cs.Insert(*class)
 }
