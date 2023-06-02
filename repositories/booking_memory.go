@@ -46,11 +46,7 @@ func GetBooking(id string) *models.Booking {
 	if booking, exists := bookings[idInt]; exists {
 		return &booking
 	}
-	// for _, booking := range bookings {
-	// 	if strconv.Itoa(booking.ID) == id {
-	// 		return &booking
-	// 	}
-	// }
+	
 	return nil
 }
 
@@ -67,7 +63,6 @@ func CreateBooking(booking models.Booking) *models.Booking {
 	idBookingMutex.Unlock()
 
 	// Add the booking to the slice
-	// bookings = append(bookings, booking)
 	bookings[booking.ID] = booking
 
 	// Returns the booking with its id
@@ -80,13 +75,7 @@ func DeleteBooking(id string) error {
 		delete(bookings, idInt)
 		return nil
 	}
-	// for index, booking := range bookings {
-	// 	if strconv.Itoa(booking.ID) == id {
-	// 		bookings = append(bookings[:index], bookings[index+1:]...)
-	// 		return nil
-	// 		break
-	// 	}
-	// }
+	
 	return fmt.Errorf("Booking not found")
 }
 

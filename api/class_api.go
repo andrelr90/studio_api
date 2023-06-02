@@ -3,14 +3,12 @@ package api
 import (
 	"net/http"
 	"strconv"
-	// "time"
 	
 	"github.com/gin-gonic/gin"
 
 	"studio_api_project/main/models"
 	"studio_api_project/main/repositories"
 )
-
 
 // Define API endpoints
 func StartClassesAPI(router *gin.Engine) {
@@ -39,21 +37,6 @@ func GetClass(c *gin.Context) {
 // CreateClass creates a new class
 func CreateClass(c *gin.Context) {
 	var class models.Class
-	
-	// // Convert the "start_date" and "end_date" fields to the RFC3339 format
-	// rawData, err := c.GetRawData()
-	// convertedData, err := models.ConvertDateFields(rawData, []string{"start_date", "end_date"})
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to convert date fields"})
-	// 	return
-	// }
-
-	// // Bind the modified JSON data to the struct
-	// err = json.Unmarshal(convertedData, &class)
-	// if err != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to bind JSON data"})
-	// 	return
-	// }
 
 	// Bind the modified JSON data to the struct
 	if err := c.ShouldBindJSON(&class); err != nil {

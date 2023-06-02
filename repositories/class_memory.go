@@ -64,13 +64,7 @@ func CreateClass(class models.Class) *models.Class {
 }
 
 func DeleteClass(id string) error {
-	// for index, class := range classes {
-	// 	if strconv.Itoa(class.ID) == id {
-	// 		classes = append(classes[:index], classes[index+1:]...)
-	// 		return nil
-	// 		break
-	// 	}
-	// }
+	// Calls the ClassesStructure remove and validate its result  
 	idInt, _ := strconv.Atoi(id)
 	result := classes.Remove(idInt)
 	if (result == true) {
@@ -89,17 +83,6 @@ func UpdateClassInStorage(updatedClass *models.Class) (*models.Class, error) {
 	}
 	classes.Insert(*updatedClass)
 	return updatedClass, nil
-	
-	// for i, class := range classes.classes {
-	// 	if class.ID == updatedClass.ID {
-	// 		// Update the properties of the found class with the new values
-	// 		classes.classes[i] = *updatedClass
-	// 		return &classes[i], nil
-	// 	}
-	// }
-
-	// If no class with the matching ID is found, return an error
-	// return nil, fmt.Errorf("Class not found")
 }
 
 func ResetClasses() {

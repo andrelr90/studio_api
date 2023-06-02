@@ -35,13 +35,6 @@ func (s *ClassesStructure) Remove(classID int) bool {
 		}
 	}
 
-	// Check if the class with the given ID was found
-	// if index < len(s.classes) && s.classes[index].ID == classID {
-	// 	// Remove the class from the slice
-	// 	s.classes = append(s.classes[:index], s.classes[index+1:]...)
-	// 	return true
-	// }
-
 	// Class with the given ID not found
 	return false
 }
