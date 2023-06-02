@@ -8,20 +8,35 @@ import (
 	"studio_api_project/main/models"
 )
 
+func TestPopulateBookingsWithExamples(t *testing.T) {
+	PopulateBookingsWithExamples()
+
+	// Verify the size of the bookings map
+	if len(bookings) != 2 {
+		t.Errorf("Expected bookings map size to be 2, got: %d", len(bookings))
+	}
+
+	// Verify the value of the lastBookingID
+	if lastBookingID != 1 {
+		t.Errorf("Expected lastBookingID to be 1, got: %d", lastBookingID)
+	}
+
+	bookings = map[int]models.Booking{}
+	lastBookingID = -1
+}
 
 func TestGetBookings(t *testing.T) {
 	// Setup test data
 	booking0 := models.Booking{ID: 0, Name: "John Doe", Date: models.DailyDate(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC))}
-	booking1 := models.Booking{ID: 1, Name: "Jane Smith", Date: models.DailyDate(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC))}
-	bookings = map[int]models.Booking{0: booking0, 1: booking1}
+	bookings = map[int]models.Booking{0: booking0}
 
 	// Call the GetBookings function
 	result := GetBookings()
 
 	// Check if the returned bookings match the expected bookings
-	expectedBookings := []models.Booking{0: booking0, 1: booking1}
-	if result[0].ID != expectedBookings[0].ID || result[1].ID != expectedBookings[1].ID {
-		t.Errorf("GetBookings returned unexpected bookings.")
+	expectedBookings := []models.Booking{0: booking0}
+	if !reflect.DeepEqual(result, expectedBookings) {
+		t.Errorf("GetBookings returned unexpected bookings. \nExpected: %v\n\n\nReturned:\n%v", expectedBookings, result)
 	}
 }
 
@@ -178,9 +193,9 @@ func TestUpdateBooking(t *testing.T) {
 
 	// Test case 2: Booking doesn't exist
 	bookingNotRegistered := models.Booking{
-		ID: 2,
+		ID: 4,
 		Name: "Peter, the hedgehog",
-		Date: models.DailyDate(time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC)),
+		Date: models.DailyDate(classDate),
 	}
 	_, err = UpdateBookingInStorage(&bookingNotRegistered)
 	if err == nil {
@@ -220,5 +235,26 @@ func TestUpdateBookingChangingToInvalidDate(t *testing.T) {
 	// Check if the booking was updated successfully
 	if error != nil && error.Error() != "There are no classes in this date" {
 		t.Error("UpdateBooking updated a booking in a date without class")
+	}
+}
+
+func TestResetBookings(t *testing.T) {
+	bookings = map[int]models.Booking{0: models.Booking{
+		ID: 0,
+		Name: "John Doe",
+		Date: models.DailyDate(time.Date(2022, time.January, 1, 0, 0, 0, 0, time.UTC)),
+	}}
+	lastBookingID = 0
+
+	// Call the ResetBookings function
+	ResetBookings()
+
+	// Verify the state of the bookings map and lastBookingID
+	if len(bookings) != 0 {
+		t.Errorf("Expected bookings map to be empty, got length: %d", len(bookings))
+	}
+
+	if lastBookingID != -1 {
+		t.Errorf("Expected lastBookingID to be -1, got: %d", lastBookingID)
 	}
 }
