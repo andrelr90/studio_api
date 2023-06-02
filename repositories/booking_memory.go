@@ -79,7 +79,6 @@ func DeleteBooking(id string) error {
 	return fmt.Errorf("Booking not found")
 }
 
-// UpdateBookingInStorage updates a class booking in the storage
 func UpdateBookingInStorage(updatedBooking *models.Booking) (*models.Booking, error) {
 	// Verify if there are classes in that day
 	if classInDate := classes.Find(time.Time(updatedBooking.Date)); classInDate == nil {

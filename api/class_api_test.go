@@ -226,7 +226,7 @@ func TestCreateClassWithOverlap(t *testing.T) {
 	router.POST("/classes", CreateClass)
 
 	// Create a request with valid JSON payload
-	jsonData := `{"name": "Pilates2", "start_date": "2023-02-01", "end_date": "2023-02-28", "capacity": 30}`
+	jsonData := `{"name": "Pilates2", "start_date": "2023-02-01", "end_date": "2023-02-02", "capacity": 30}`
 
 	// Perform the request
 	req, _ := http.NewRequest("POST", "/classes", strings.NewReader(jsonData))
@@ -238,7 +238,7 @@ func TestCreateClassWithOverlap(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, rec.Code)
 
 	// Verify the response body
-	expectedResponse := `{"error":"Intersection found with Yoga"}`
+	expectedResponse := `{"error":"Intersection found with Pilates"}`
 	assert.Equal(t, expectedResponse, rec.Body.String())
 
 	tearDown()

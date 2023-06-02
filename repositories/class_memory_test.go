@@ -255,6 +255,7 @@ func TestValidateIntersection(t *testing.T) {
 	classes.Insert(class1)
 	classes.Insert(class2)
 
+	// Case 1:
 	// Create a new class with a conflicting timeframe
 	newClass := models.Class{
 		ID:        3,
@@ -265,12 +266,30 @@ func TestValidateIntersection(t *testing.T) {
 	}
 
 	// Validate the intersection
-	err := ValidateIntersection(newClass)
+	err := ValidateIntersection(newClass, true)
 
 	// Check that an error is returned with the expected error message
 	expectedError := "Intersection found with Pilates"
 	assert.EqualError(t, err, expectedError)
 
+	// Case 2:
+	// Update a class with a conflicting timeframe
+	newClass = models.Class{
+		ID:        0,
+		Name:      "Yoga",
+		StartDate: models.DailyDate(time.Date(2023, time.February, 15, 0, 0, 0, 0, time.UTC)),
+		EndDate:   models.DailyDate(time.Date(2023, time.March, 15, 0, 0, 0, 0, time.UTC)),
+		Capacity:  35,
+	}
+
+	// Validate the intersection
+	err = ValidateIntersection(newClass, false)
+
+	// Check that an error is returned with the expected error message
+	expectedError = "Intersection found with Pilates"
+	assert.EqualError(t, err, expectedError)
+
+	// Case 3:
 	// Create a new class with a conflicting timeframe in limits (start equals to another end)
 	newClass = models.Class{
 		ID:        4,
@@ -281,12 +300,13 @@ func TestValidateIntersection(t *testing.T) {
 	}
 
 	// Validate the intersection
-	err = ValidateIntersection(newClass)
+	err = ValidateIntersection(newClass, true)
 
 	// Check that an error is returned with the expected error message
 	expectedError = "Intersection found with Pilates"
 	assert.EqualError(t, err, expectedError)
 
+	// Case 4:
 	// Create a new class with a non-conflicting timeframe
 	nonConflictingClass := models.Class{
 		ID:        5,
@@ -297,7 +317,7 @@ func TestValidateIntersection(t *testing.T) {
 	}
 
 	// Validate the intersection for the non-conflicting class
-	err = ValidateIntersection(nonConflictingClass)
+	err = ValidateIntersection(nonConflictingClass, true)
 
 	// Check that no error is returned
 	assert.NoError(t, err)

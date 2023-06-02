@@ -74,7 +74,6 @@ func DeleteClass(id string) error {
 	}
 }
 
-// UpdateClassInStorage updates a class in the storage
 func UpdateClassInStorage(updatedClass *models.Class) (*models.Class, error) {
 	// As the list is sorted, updates are done by removing and reinserting the class in the list
 	removeResult := classes.Remove(updatedClass.ID)
@@ -98,12 +97,12 @@ func ResetClasses() {
 // --------------------------------------
 
 // ValidateIntersection checks if there is a class within the given timeframe of a new class
-func ValidateIntersection(newClass models.Class) error {
+func ValidateIntersection(newClass models.Class, creation bool) error {
 	start := time.Time(newClass.StartDate)
 	end   := time.Time(newClass.EndDate)
 	for _, class := range classes.classes {
 		// Check if there is an intersection between the given timeframe and the existing class:
-		if (class.ID != newClass.ID) {
+		if (creation || class.ID != newClass.ID) {
 			if (start.Before(time.Time(class.EndDate)) || start.Equal(time.Time(class.EndDate))) && 
 			   (end.After(time.Time(class.StartDate)) || end.Equal(time.Time(class.StartDate))) {
 				var errorMessage = fmt.Sprintf("Intersection found with %s", class.Name)

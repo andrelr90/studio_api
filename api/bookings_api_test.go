@@ -278,6 +278,27 @@ func TestUpdateBookingBiding(t *testing.T) {
 	tearDown()
 }
 
+func TestUpdateBookingDateWithoutClass(t *testing.T) {
+	// Populate with examples
+	repositories.PopulateClassesWithExamples()
+	repositories.PopulateBookingsWithExamples()
+	
+	// Create a new Gin router
+	router := gin.Default()
+	router.PUT("/bookings/:id", UpdateBooking)
+
+	// Perform the request
+	req, _ := http.NewRequest("PUT", "/bookings/0", strings.NewReader(`{"id": 0, "name": "John Doe", "date": "1999-02-01"}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	// Check the response status
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+	tearDown()
+}
+
 func TestUpdateBookingRequiredFields(t *testing.T) {
 	// Populate with examples
 	repositories.PopulateClassesWithExamples()

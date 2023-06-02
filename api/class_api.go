@@ -19,7 +19,6 @@ func StartClassesAPI(router *gin.Engine) {
 	router.PUT("/classes/:id", UpdateClass)
 }
 
-// GetClasses returns all classes
 func GetClasses(c *gin.Context) {
 	c.JSON(http.StatusOK, repositories.GetClasses())
 }
@@ -34,7 +33,6 @@ func GetClass(c *gin.Context) {
 	}
 }
 
-// CreateClass creates a new class
 func CreateClass(c *gin.Context) {
 	var class models.Class
 
@@ -45,7 +43,7 @@ func CreateClass(c *gin.Context) {
 	}
 
 	// Validate intersection with other classes
-	if err := repositories.ValidateIntersection(class); err != nil {
+	if err := repositories.ValidateIntersection(class, true); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -65,7 +63,6 @@ func DeleteClass(c *gin.Context) {
 	}
 }
 
-// UpdateClass updates an existing class
 func UpdateClass(c *gin.Context) {
 	// Get the class ID from the request URL parameters
 	classID := c.Param("id")
@@ -90,7 +87,7 @@ func UpdateClass(c *gin.Context) {
 	}
 
 	// Validate intersection with other classes
-	if err := repositories.ValidateIntersection(*class); err != nil {
+	if err := repositories.ValidateIntersection(*class, false); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

@@ -93,7 +93,6 @@
 import (
         "net/http"
         "strconv"
-        // "fmt"
         
         "github.com/gin-gonic/gin"
 
@@ -110,12 +109,10 @@ func StartBookingsAPI(router *gin.Engine) <span class="cov1" title="1">{
         router.PUT("/bookings/:id", UpdateBooking)
 }</span>
 
-// GetBookings returns all class bookings
 func GetBookings(c *gin.Context) <span class="cov4" title="2">{
         c.JSON(http.StatusOK, repositories.GetBookings())
 }</span>
 
-// GetBooking returns a specific booking by ID
 func GetBooking(c *gin.Context) <span class="cov4" title="2">{
         id := c.Param("id")
         if booking := repositories.GetBooking(id); booking == nil </span><span class="cov1" title="1">{
@@ -125,7 +122,6 @@ func GetBooking(c *gin.Context) <span class="cov4" title="2">{
         }</span>
 }
 
-// CreateBooking creates a new class booking
 func CreateBooking(c *gin.Context) <span class="cov10" title="7">{
         var booking models.Booking
         if err := c.ShouldBindJSON(&amp;booking); err != nil </span><span class="cov7" title="4">{
@@ -143,7 +139,6 @@ func CreateBooking(c *gin.Context) <span class="cov10" title="7">{
         <span class="cov4" title="2">c.JSON(http.StatusCreated, createdBooking)</span>
 }
 
-// DeleteBooking deletes a specific booking by ID
 func DeleteBooking(c *gin.Context) <span class="cov4" title="2">{
         id := c.Param("id")
         if err := repositories.DeleteBooking(id); err != nil </span><span class="cov1" title="1">{
@@ -153,8 +148,7 @@ func DeleteBooking(c *gin.Context) <span class="cov4" title="2">{
         }</span>
 }
 
-// UpdateClass updates an existing class
-func UpdateBooking(c *gin.Context) <span class="cov7" title="4">{
+func UpdateBooking(c *gin.Context) <span class="cov8" title="5">{
         // Get the class booking ID from the request URL parameters
         bookingID := c.Param("id")
 
@@ -166,21 +160,25 @@ func UpdateBooking(c *gin.Context) <span class="cov7" title="4">{
         }</span>
 
         // Bind the request JSON data to the class booking object
-        <span class="cov6" title="3">if err := c.ShouldBindJSON(&amp;booking); err != nil </span><span class="cov1" title="1">{
+        <span class="cov7" title="4">if err := c.ShouldBindJSON(&amp;booking); err != nil </span><span class="cov1" title="1">{
                 c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
                 return
         }</span>
 
         // Disallow changes in ID
-        <span class="cov4" title="2">if (bookingID != strconv.Itoa(booking.ID)) </span><span class="cov1" title="1">{
+        <span class="cov6" title="3">if (bookingID != strconv.Itoa(booking.ID)) </span><span class="cov1" title="1">{
                 c.JSON(http.StatusBadRequest, gin.H{"error": "You are not allowed to change a class booking ID"})
                 return
         }</span>
 
-        // Update the class in the storage or database (no need to check if the booking exists, as it is tested by the first condition)
-        <span class="cov1" title="1">updatedBooking, _ := repositories.UpdateBookingInStorage(booking)
+        // Update the class in the storage or database
+        <span class="cov4" title="2">updatedBooking, err := repositories.UpdateBookingInStorage(booking)
+        if err != nil </span><span class="cov1" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
 
-        c.JSON(http.StatusOK, updatedBooking)</span>
+        <span class="cov1" title="1">c.JSON(http.StatusOK, updatedBooking)</span>
 }
 </pre>
 		
@@ -189,14 +187,12 @@ func UpdateBooking(c *gin.Context) <span class="cov7" title="4">{
 import (
         "net/http"
         "strconv"
-        // "time"
         
         "github.com/gin-gonic/gin"
 
         "studio_api_project/main/models"
         "studio_api_project/main/repositories"
 )
-
 
 // Define API endpoints
 func StartClassesAPI(router *gin.Engine) <span class="cov1" title="1">{
@@ -207,7 +203,6 @@ func StartClassesAPI(router *gin.Engine) <span class="cov1" title="1">{
         router.PUT("/classes/:id", UpdateClass)
 }</span>
 
-// GetClasses returns all classes
 func GetClasses(c *gin.Context) <span class="cov4" title="2">{
         c.JSON(http.StatusOK, repositories.GetClasses())
 }</span>
@@ -222,24 +217,8 @@ func GetClass(c *gin.Context) <span class="cov4" title="2">{
         }</span>
 }
 
-// CreateClass creates a new class
 func CreateClass(c *gin.Context) <span class="cov10" title="8">{
         var class models.Class
-        
-        // // Convert the "start_date" and "end_date" fields to the RFC3339 format
-        // rawData, err := c.GetRawData()
-        // convertedData, err := models.ConvertDateFields(rawData, []string{"start_date", "end_date"})
-        // if err != nil {
-        //         c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to convert date fields"})
-        //         return
-        // }
-
-        // // Bind the modified JSON data to the struct
-        // err = json.Unmarshal(convertedData, &amp;class)
-        // if err != nil {
-        //         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to bind JSON data"})
-        //         return
-        // }
 
         // Bind the modified JSON data to the struct
         if err := c.ShouldBindJSON(&amp;class); err != nil </span><span class="cov7" title="5">{
@@ -248,7 +227,7 @@ func CreateClass(c *gin.Context) <span class="cov10" title="8">{
         }</span>
 
         // Validate intersection with other classes
-        <span class="cov5" title="3">if err := repositories.ValidateIntersection(class); err != nil </span><span class="cov1" title="1">{
+        <span class="cov5" title="3">if err := repositories.ValidateIntersection(class, true); err != nil </span><span class="cov1" title="1">{
                 c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
                 return
         }</span>
@@ -268,7 +247,6 @@ func DeleteClass(c *gin.Context) <span class="cov4" title="2">{
         }</span>
 }
 
-// UpdateClass updates an existing class
 func UpdateClass(c *gin.Context) <span class="cov7" title="5">{
         // Get the class ID from the request URL parameters
         classID := c.Param("id")
@@ -293,7 +271,7 @@ func UpdateClass(c *gin.Context) <span class="cov7" title="5">{
         }</span>
 
         // Validate intersection with other classes
-        <span class="cov4" title="2">if err := repositories.ValidateIntersection(*class); err != nil </span><span class="cov1" title="1">{
+        <span class="cov4" title="2">if err := repositories.ValidateIntersection(*class, false); err != nil </span><span class="cov1" title="1">{
                 c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
                 return
         }</span>
@@ -310,44 +288,7 @@ func UpdateClass(c *gin.Context) <span class="cov7" title="5">{
 import (
         "time"
     "strconv"
-    // "encoding/json"
 )
-
-// func ConvertDateFields(rawData []byte, fields []string) ([]byte, error) {
-//         var jsonData map[string]interface{}
-//         err := json.Unmarshal(rawData, &amp;jsonData)
-//         if err != nil {
-//                 return nil, err
-//         }
-
-//         for _, field := range fields {
-//                 value, ok := jsonData[field].(string)
-//                 if ok {
-//                         convertedValue, err := ConvertToRFC3339(value)
-//                         if err != nil {
-//                                 return nil, err
-//                         }
-//                         jsonData[field] = convertedValue
-//                 }
-//         }
-
-//         return json.Marshal(jsonData)
-// }
-
-// func ConvertToRFC3339(timeStr string) (string, error) {
-//         t, err := time.Parse("2006-01-02", timeStr)
-//         if err != nil {
-//                 return "", err
-//         }
-
-//         return t.Format("2006-01-02T15:04:05Z07:00"), nil
-// }
-
-
-
-
-
-
 
 type DailyDate time.Time
 
@@ -433,11 +374,7 @@ func GetBooking(id string) *models.Booking <span class="cov6" title="2">{
         if booking, exists := bookings[idInt]; exists </span><span class="cov1" title="1">{
                 return &amp;booking
         }</span>
-        // for _, booking := range bookings {
-        //         if strconv.Itoa(booking.ID) == id {
-        //                 return &amp;booking
-        //         }
-        // }
+        
         <span class="cov1" title="1">return nil</span>
 }
 
@@ -454,7 +391,6 @@ func CreateBooking(booking models.Booking) *models.Booking <span class="cov6" ti
         idBookingMutex.Unlock()
 
         // Add the booking to the slice
-        // bookings = append(bookings, booking)
         bookings[booking.ID] = booking
 
         // Returns the booking with its id
@@ -467,17 +403,10 @@ func DeleteBooking(id string) error <span class="cov6" title="2">{
                 delete(bookings, idInt)
                 return nil
         }</span>
-        // for index, booking := range bookings {
-        //         if strconv.Itoa(booking.ID) == id {
-        //                 bookings = append(bookings[:index], bookings[index+1:]...)
-        //                 return nil
-        //                 break
-        //         }
-        // }
+        
         <span class="cov1" title="1">return fmt.Errorf("Booking not found")</span>
 }
 
-// UpdateBookingInStorage updates a class booking in the storage
 func UpdateBookingInStorage(updatedBooking *models.Booking) (*models.Booking, error) <span class="cov10" title="3">{
         // Verify if there are classes in that day
         if classInDate := classes.Find(time.Time(updatedBooking.Date)); classInDate == nil </span><span class="cov1" title="1">{
@@ -539,12 +468,12 @@ func PopulateClassesWithExamples() <span class="cov1" title="1">{
     lastID = 1
 }</span>
 
-func GetClasses() []models.Class <span class="cov4" title="2">{
+func GetClasses() []models.Class <span class="cov3" title="2">{
         return classes.classes
 }</span>
 
-func GetClass(id string) *models.Class <span class="cov4" title="2">{
-        for _, class := range classes.classes </span><span class="cov4" title="2">{
+func GetClass(id string) *models.Class <span class="cov3" title="2">{
+        for _, class := range classes.classes </span><span class="cov3" title="2">{
                 if strconv.Itoa(class.ID) == id </span><span class="cov1" title="1">{
                         return &amp;class
                 }</span>
@@ -566,14 +495,8 @@ func CreateClass(class models.Class) *models.Class <span class="cov1" title="1">
         return &amp;class
 }</span>
 
-func DeleteClass(id string) error <span class="cov4" title="2">{
-        // for index, class := range classes {
-        //         if strconv.Itoa(class.ID) == id {
-        //                 classes = append(classes[:index], classes[index+1:]...)
-        //                 return nil
-        //                 break
-        //         }
-        // }
+func DeleteClass(id string) error <span class="cov3" title="2">{
+        // Calls the ClassesStructure remove and validate its result  
         idInt, _ := strconv.Atoi(id)
         result := classes.Remove(idInt)
         if (result == true) </span><span class="cov1" title="1">{
@@ -583,8 +506,7 @@ func DeleteClass(id string) error <span class="cov4" title="2">{
         }</span>
 }
 
-// UpdateClassInStorage updates a class in the storage
-func UpdateClassInStorage(updatedClass *models.Class) (*models.Class, error) <span class="cov4" title="2">{
+func UpdateClassInStorage(updatedClass *models.Class) (*models.Class, error) <span class="cov3" title="2">{
         // As the list is sorted, updates are done by removing and reinserting the class in the list
         removeResult := classes.Remove(updatedClass.ID)
         if (removeResult != true) </span><span class="cov1" title="1">{
@@ -592,17 +514,6 @@ func UpdateClassInStorage(updatedClass *models.Class) (*models.Class, error) <sp
         }</span>
         <span class="cov1" title="1">classes.Insert(*updatedClass)
         return updatedClass, nil</span>
-        
-        // for i, class := range classes.classes {
-        //         if class.ID == updatedClass.ID {
-        //                 // Update the properties of the found class with the new values
-        //                 classes.classes[i] = *updatedClass
-        //                 return &amp;classes[i], nil
-        //         }
-        // }
-
-        // If no class with the matching ID is found, return an error
-        // return nil, fmt.Errorf("Class not found")
 }
 
 func ResetClasses() <span class="cov1" title="1">{
@@ -618,14 +529,14 @@ func ResetClasses() <span class="cov1" title="1">{
 // --------------------------------------
 
 // ValidateIntersection checks if there is a class within the given timeframe of a new class
-func ValidateIntersection(newClass models.Class) error <span class="cov6" title="3">{
+func ValidateIntersection(newClass models.Class, creation bool) error <span class="cov6" title="4">{
         start := time.Time(newClass.StartDate)
         end   := time.Time(newClass.EndDate)
-        for _, class := range classes.classes </span><span class="cov10" title="7">{
+        for _, class := range classes.classes </span><span class="cov10" title="9">{
                 // Check if there is an intersection between the given timeframe and the existing class:
-                if (class.ID != newClass.ID) </span><span class="cov10" title="7">{
+                if (creation || class.ID != newClass.ID) </span><span class="cov9" title="8">{
                         if (start.Before(time.Time(class.EndDate)) || start.Equal(time.Time(class.EndDate))) &amp;&amp; 
-                           (end.After(time.Time(class.StartDate)) || end.Equal(time.Time(class.StartDate))) </span><span class="cov4" title="2">{
+                           (end.After(time.Time(class.StartDate)) || end.Equal(time.Time(class.StartDate))) </span><span class="cov5" title="3">{
                                 var errorMessage = fmt.Sprintf("Intersection found with %s", class.Name)
                                 return fmt.Errorf(errorMessage)
                         }</span>
@@ -671,13 +582,6 @@ func (s *ClassesStructure) Remove(classID int) bool <span class="cov5" title="4"
                         return true
                 }</span>
         }
-
-        // Check if the class with the given ID was found
-        // if index &lt; len(s.classes) &amp;&amp; s.classes[index].ID == classID {
-        //         // Remove the class from the slice
-        //         s.classes = append(s.classes[:index], s.classes[index+1:]...)
-        //         return true
-        // }
 
         // Class with the given ID not found
         <span class="cov3" title="2">return false</span>
