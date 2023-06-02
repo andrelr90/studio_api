@@ -204,7 +204,7 @@ Test coverage can also be checked through the file `cover.html` in the `/test_ou
 As Go is a high-performance language, most of the features implemented in this project are designed to handle the problem with excellent performance. While many performance issues in similar projects are typically addressed by databases, this project utilizes non-persistent repositories, requiring performant data structures. Whenever possible, costs have been reduced to constant or logarithmic time complexity. A hash data structure is used for storing books, while a custom data structure is employed for storing classes, specifically focusing on the cost of finding available classes on a given date, which is necessary for some of the most frequently used booking operations. This approach is driven by the understanding that classes are typically less frequently manipulated or modified compared to bookings, making higher costs more acceptable. It is worth noting that the performance of these data structures could be further improved through incremental enhancements in future implementations.
 
 ### Possible next steps
-The following have been disconsidered for simplicity and can be addressed in further implementations:
-- Implement Overbooking check
-- Use a database
+The following have been disconsidered for simplicity and can be addressed in future implementations:
+- Implementation of overbooking validation
+- Integration with databases
 
