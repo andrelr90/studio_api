@@ -5,7 +5,7 @@ import (
 	"time"
 	"strconv"
 
-	"studio_api_project/main/models"
+	"studio_api/src/models"
 )
 
 type ClassesStructure struct {

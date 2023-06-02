@@ -12,8 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
-	"studio_api_project/main/models"
-	"studio_api_project/main/repositories"
+	"studio_api/src/models"
+	"studio_api/src/repositories"
 )
 
 func tearDown() {

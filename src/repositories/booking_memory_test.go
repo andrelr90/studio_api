@@ -5,7 +5,7 @@ import (
 	"time"
 	"reflect"
 
-	"studio_api_project/main/models"
+	"studio_api/src/models"
 )
 
 func TestPopulateBookingsWithExamples(t *testing.T) {

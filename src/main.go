@@ -4,8 +4,8 @@ import (
 	"log"
 	"github.com/gin-gonic/gin"
 
-	"studio_api_project/main/api"
-	"studio_api_project/main/repositories"
+	"studio_api/src/api"
+	"studio_api/src/repositories"
 )
 
 func SetupServer(router *gin.Engine) {

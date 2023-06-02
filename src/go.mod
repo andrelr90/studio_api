@@ -1,4 +1,4 @@
-module studio_api_project/main
+module studio_api/src
 
 go 1.20
 

@@ -5,7 +5,7 @@ import (
 	"time"
 	"reflect"
 
-	"studio_api_project/main/models"
+	"studio_api/src/models"
 	"github.com/stretchr/testify/assert"
 )
 

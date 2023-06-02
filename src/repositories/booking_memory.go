@@ -6,7 +6,7 @@ import (
     "strconv"
 	"fmt"
 
-	"studio_api_project/main/models"
+	"studio_api/src/models"
 )
 
 var (

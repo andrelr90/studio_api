@@ -6,8 +6,8 @@ import (
 	
 	"github.com/gin-gonic/gin"
 
-	"studio_api_project/main/models"
-	"studio_api_project/main/repositories"
+	"studio_api/src/models"
+	"studio_api/src/repositories"
 )
 
 // Define API endpoints
