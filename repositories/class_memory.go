@@ -85,9 +85,7 @@ func UpdateClassInStorage(updatedClass *models.Class) (*models.Class, error) {
 	class.EndDate = updatedClass.EndDate
 	class.Capacity = updatedClass.Capacity
 
-	// As the list is sorted, updates are done by removing and reinserting the class in the list. Cascade is not activated in this case.
-	_ = classes.Remove(class.ID, false)
-	classes.Insert(*class)
+	classes.UpdateClass(class)
 	return class, nil
 }
 
@@ -104,6 +102,7 @@ func ResetClasses() {
 // --------------------------------------
 
 // ValidateIntersection checks if there is a class within the given timeframe of a new class
+// The performance of this method could be enhanced with the new Find method
 func ValidateIntersection(newClass models.Class, creation bool) error {
 	start := time.Time(newClass.StartDate)
 	end   := time.Time(newClass.EndDate)

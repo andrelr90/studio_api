@@ -213,6 +213,24 @@ func TestUpdateClass(t *testing.T) {
 	tearDownClassTests()
 }
 
+func TestUpdateClassShouldDeleteBookingsWithDatesOutOfRange(t *testing.T) {
+	// Prepare test data
+	PopulateClassesWithExamples()
+	PopulateBookingsWithExamples()
+
+	// Update class 0
+	updatedClass := classes.classes[0]
+	updatedClass.StartDate = models.DailyDate(time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC))
+	updatedClass.EndDate = models.DailyDate(time.Date(2021, time.February, 1, 0, 0, 0, 0, time.UTC))
+
+	UpdateClassInStorage(&updatedClass)
+	if len(bookings) != 0 {
+		t.Errorf("Update class to date that has bookings out of range should delete those bookings on cascade")
+	}
+
+	tearDownClassTests()
+}
+
 func TestResetClasses(t *testing.T) {
 	// Create a class
 	classDate := time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)

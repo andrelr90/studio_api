@@ -16,28 +16,28 @@ func NewClassesStructure() *ClassesStructure {
 	return &ClassesStructure{}
 }
 
-func (s *ClassesStructure) Insert(class models.Class) {
+func (cs *ClassesStructure) Insert(class models.Class) {
 	// Find the index to insert the class using binary search
-	index := sort.Search(len(s.classes), func(i int) bool {
-		return time.Time(class.StartDate).Before(time.Time(s.classes[i].StartDate))
+	index := sort.Search(len(cs.classes), func(i int) bool {
+		return time.Time(class.StartDate).Before(time.Time(cs.classes[i].StartDate))
 	})
 
 	// Insert the class at the found index
-	s.classes = append(s.classes[:index], append([]models.Class{class}, s.classes[index:]...)...)
+	cs.classes = append(cs.classes[:index], append([]models.Class{class}, cs.classes[index:]...)...)
 }
 
-func (s *ClassesStructure) Remove(classID int, cascadeBookings bool) bool {
+func (cs *ClassesStructure) Remove(classID int, cascadeAllBookings bool) bool {
 	// Find the index of the class with the given ID
-	for i, class := range s.classes {
+	for i, class := range cs.classes {
 		if class.ID == classID {
-			// Cascade bookings removal
-			if (cascadeBookings == true) {
+			if (cascadeAllBookings == true) {
+				// Cascade bookings removal
 				for bookingId, _ := range class.Bookings {
 					DeleteBooking(strconv.Itoa(bookingId))
 				}
 			}
 			// Remove the class from the slice
-			s.classes = append(s.classes[:i], s.classes[i+1:]...)
+			cs.classes = append(cs.classes[:i], cs.classes[i+1:]...)
 			return true
 		}
 	}
@@ -46,15 +46,29 @@ func (s *ClassesStructure) Remove(classID int, cascadeBookings bool) bool {
 	return false
 }
 
-func (s *ClassesStructure) Find(date time.Time) *models.Class {
+func (cs *ClassesStructure) UpdateClass(class  *models.Class) {
+	// Remove only bookings in dates that do not exist anymore
+	for key, _ := range class.Bookings {
+		timeDate := time.Time(bookings[key].Date)
+		if time.Time(class.StartDate).After(timeDate) || time.Time(class.EndDate).Before(timeDate) {
+			DeleteBooking(strconv.Itoa(key))
+		}
+	}
+
+	// As the list is sorted, updates are done by removing and reinserting the class in the list. Cascade is not activated in this case.
+	cs.Remove(class.ID, false)
+	cs.Insert(*class)
+}
+
+func (cs *ClassesStructure) Find(date time.Time) *models.Class {
 	// Perform binary search to find the class on the given date
-	index := sort.Search(len(s.classes), func(i int) bool {
-		return !date.After(time.Time(s.classes[i].EndDate))
+	index := sort.Search(len(cs.classes), func(i int) bool {
+		return !date.After(time.Time(cs.classes[i].EndDate))
 	})
 
 	// Check if the found class contains the given date
-	if (index < len(s.classes) && !date.Before(time.Time(s.classes[index].StartDate))) {
-		return &s.classes[index]
+	if (index < len(cs.classes) && !date.Before(time.Time(cs.classes[index].StartDate))) {
+		return &cs.classes[index]
 	}
 
 	// No class found on the given date
