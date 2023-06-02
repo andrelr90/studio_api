@@ -5,6 +5,10 @@ This repository contains the implementation of an API for managing classes and b
 
 
 ## Executing
+Assuming the project was installed successfully, navigate to the `src` folder of the project and run:
+```
+go run main.go
+```
 
 
 ## Available endpoints and usage
@@ -182,13 +186,13 @@ The main architecture of the project follows a layered-based architecture. The i
 ### Testing
 Using a layered architecture also has some advantages regarding tests, as responsibilities are well distributed across entities in different packages. Tests for the API layer check the availability of endpoints, validate the input and output of data, and also verify the possible code and message errors returned by each endpoint. Regarding the model layer, date representations and logic are also unit-tested. Unfortunately, tests for the bindings and validators of Gin are not possible directly through the model layer, so they depend on the API tests. Still, using a well-defined validation tool has advantages regarding maintenance and even reliability. Finally, repository tests validate the manipulation logic and data structures of the set of classes and bookings.
 
-Though coverage might be a controversial metric, the code developed has 100% test coverage in all files and modules, except for the main() function. Tests not only iterate through all the code but have the intention of effectively verifying corner cases, checking specific validations, and ensuring that the code can be properly maintained. Tests can be performed by running the following command in the project's root folder:
+Though coverage might be a controversial metric, the code developed has 100% test coverage in all files and modules, except for the main() function. Tests not only iterate through all the code but have the intention of effectively verifying corner cases, checking specific validations, and ensuring that the code can be properly maintained. Tests can be performed by running the following command in the project's `src` folder:
 
 ```
 go test -cover ./...
 ```
 
-Test coverage can also be checked through the file `cover.html` in the root folder.
+Test coverage can also be checked through the file `cover.html` in the `test_outputs` folder.
 
 ### Performance
 As Go is a high-performance language, most of the features implemented in this project are designed to handle the problem with excellent performance. While many performance issues in similar projects are typically addressed by databases, this project utilizes non-persistent repositories, requiring performant data structures. Whenever possible, costs have been reduced to constant or logarithmic time complexity. A hash data structure is used for storing books, while a custom data structure is employed for storing classes, specifically focusing on the cost of finding available classes on a given date, which is necessary for some of the most frequently used booking operations. This approach is driven by the understanding that classes are typically less frequently manipulated or modified compared to bookings, making higher costs more acceptable. It is worth noting that the performance of these data structures could be further improved through incremental enhancements in future implementations.
