@@ -66,7 +66,7 @@ func CreateClass(class models.Class) *models.Class {
 func DeleteClass(id string) error {
 	// Calls the ClassesStructure remove and validate its result  
 	idInt, _ := strconv.Atoi(id)
-	result := classes.Remove(idInt)
+	result := classes.Remove(idInt, true)
 	if (result == true) {
 		return nil
 	} else {
@@ -75,13 +75,20 @@ func DeleteClass(id string) error {
 }
 
 func UpdateClassInStorage(updatedClass *models.Class) (*models.Class, error) {
-	// As the list is sorted, updates are done by removing and reinserting the class in the list
-	removeResult := classes.Remove(updatedClass.ID)
-	if (removeResult != true) {
+	class := GetClass(strconv.Itoa(updatedClass.ID))
+	if (class == nil) {
 		return nil, fmt.Errorf("Class not found")
 	}
-	classes.Insert(*updatedClass)
-	return updatedClass, nil
+
+	class.Name = updatedClass.Name
+	class.StartDate = updatedClass.StartDate
+	class.EndDate = updatedClass.EndDate
+	class.Capacity = updatedClass.Capacity
+
+	// As the list is sorted, updates are done by removing and reinserting the class in the list. Cascade is not activated in this case.
+	_ = classes.Remove(class.ID, false)
+	classes.Insert(*class)
+	return class, nil
 }
 
 func ResetClasses() {

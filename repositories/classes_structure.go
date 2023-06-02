@@ -26,14 +26,17 @@ func (s *ClassesStructure) Insert(class models.Class) {
 	s.classes = append(s.classes[:index], append([]models.Class{class}, s.classes[index:]...)...)
 }
 
-func (s *ClassesStructure) Remove(classID int) bool {
+func (s *ClassesStructure) Remove(classID int, cascadeBookings bool) bool {
 	// Find the index of the class with the given ID
 	for i, class := range s.classes {
 		if class.ID == classID {
-			// Remove the class from the slice
-			for bookingId, _ := range class.Bookings {
-				DeleteBooking(strconv.Itoa(bookingId))
+			// Cascade bookings removal
+			if (cascadeBookings == true) {
+				for bookingId, _ := range class.Bookings {
+					DeleteBooking(strconv.Itoa(bookingId))
+				}
 			}
+			// Remove the class from the slice
 			s.classes = append(s.classes[:i], s.classes[i+1:]...)
 			return true
 		}
