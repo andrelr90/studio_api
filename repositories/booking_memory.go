@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	bookings          map[int]models.Booking = make(map[int]models.Booking) //[]models.Booking
+	bookings          map[int]models.Booking = make(map[int]models.Booking)
 	lastBookingID     int = -1
 	idBookingMutex    sync.Mutex
 )
@@ -20,14 +20,22 @@ func PopulateBookingsWithExamples() {
 	bookings[0] = models.Booking{
 		ID:       0,
 		Name:     "John Doe",
-		Date:     models.DailyDate(time.Now()),
+		Date:     models.DailyDate(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
 	}
 	bookings[1] =models.Booking{
 		ID:       1,
 		Name:     "Jane Smith",
-		Date:     models.DailyDate(time.Now()),
+		Date:     models.DailyDate(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
 	}
 	lastBookingID = 1
+
+	// Adds the id of this booking to the booking list of the class of the day
+	if class := classes.Find(time.Time(bookings[0].Date)); class != nil {
+		class.Bookings[bookings[0].ID] = 1
+	}
+	if class := classes.Find(time.Time(bookings[1].Date)); class != nil {
+		class.Bookings[bookings[1].ID] = 1
+	}
 }
 
 func GetBookings() []models.Booking {
@@ -65,6 +73,11 @@ func CreateBooking(booking models.Booking) *models.Booking {
 	// Add the booking to the slice
 	bookings[booking.ID] = booking
 
+	// Adds the id of this booking to the booking list of the class of the day
+	if class := classes.Find(time.Time(booking.Date)); class != nil {
+		class.Bookings[booking.ID] = 1
+	}
+
 	// Returns the booking with its id
 	return &booking
 }
@@ -72,6 +85,11 @@ func CreateBooking(booking models.Booking) *models.Booking {
 func DeleteBooking(id string) error {
 	idInt, _ := strconv.Atoi(id)
 	if _, exists := bookings[idInt]; exists {
+		// Removes the id of the old booking of the booking list of the class of the day
+		if class := classes.Find(time.Time(bookings[idInt].Date)); class != nil {
+			delete(class.Bookings, bookings[idInt].ID)
+		}
+
 		delete(bookings, idInt)
 		return nil
 	}
@@ -87,6 +105,16 @@ func UpdateBookingInStorage(updatedBooking *models.Booking) (*models.Booking, er
 	
 	// Updates the booking
 	if _, exists := bookings[updatedBooking.ID]; exists {
+		oldBooking := bookings[updatedBooking.ID]
+		// Removes the id of the old booking of the booking list of the class of the day
+		if class := classes.Find(time.Time(oldBooking.Date)); class != nil {
+			delete(class.Bookings, oldBooking.ID)
+		}
+		// Insert the id of the new booking to the booking list of the class of the day
+		if class := classes.Find(time.Time(updatedBooking.Date)); class != nil {
+			class.Bookings[updatedBooking.ID] = 1
+		}
+
 		bookings[updatedBooking.ID] = *updatedBooking
 		return updatedBooking, nil
 	}

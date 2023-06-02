@@ -3,6 +3,7 @@ package repositories
 import (
 	"sort"
 	"time"
+	"strconv"
 
 	"studio_api_project/main/models"
 )
@@ -30,6 +31,9 @@ func (s *ClassesStructure) Remove(classID int) bool {
 	for i, class := range s.classes {
 		if class.ID == classID {
 			// Remove the class from the slice
+			for bookingId, _ := range class.Bookings {
+				DeleteBooking(strconv.Itoa(bookingId))
+			}
 			s.classes = append(s.classes[:i], s.classes[i+1:]...)
 			return true
 		}

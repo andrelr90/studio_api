@@ -9,6 +9,7 @@ import (
 )
 
 func TestPopulateBookingsWithExamples(t *testing.T) {
+	classes = NewClassesStructure()
 	PopulateBookingsWithExamples()
 
 	// Verify the size of the bookings map
@@ -71,13 +72,13 @@ func TestCreateBooking(t *testing.T) {
 	bookings = map[int]models.Booking{}
 
 	// Create a class on the test date
-	class := models.Class{
-		ID:        1,
-		Name:      "Pilates",
-		StartDate: models.DailyDate(classDate),
-		EndDate:   models.DailyDate(classDate.AddDate(0, 0, 3)),
-		Capacity:  30,
-	}
+	class := *models.NewClass(
+		1,
+		"Pilates",
+		models.DailyDate(classDate),
+		models.DailyDate(classDate.AddDate(0, 0, 3)),
+		30,
+	)
 	classes = &ClassesStructure{}
 	classes.Insert(class)
 
@@ -117,13 +118,13 @@ func TestCreateBookingInInvalidDate(t *testing.T) {
 	bookings = map[int]models.Booking{}
 
 	// Create a class on the test date
-	class := models.Class{
-		ID:        1,
-		Name:      "Pilates",
-		StartDate: models.DailyDate(classDate),
-		EndDate:   models.DailyDate(classDate.AddDate(0, 0, 3)),
-		Capacity:  30,
-	}
+	class := *models.NewClass(
+		1,
+		"Pilates",
+		models.DailyDate(classDate),
+		models.DailyDate(classDate.AddDate(0, 0, 3)),
+		30,
+	)
 	classes = &ClassesStructure{}
 	classes.Insert(class)
 
@@ -164,6 +165,19 @@ func TestDeleteBooking(t *testing.T) {
 	}
 }
 
+func TestDeleteBookingsShouldUpdateClassOnCascade(t *testing.T) {
+	// Prepare test data
+	PopulateClassesWithExamples()
+	PopulateBookingsWithExamples()
+
+	_ = DeleteBooking("0")
+	if len(classes.classes[0].Bookings) != 1 {
+		t.Errorf("DeleteBookings should update class on cascade")
+	}
+
+	tearDownClassTests()
+}
+
 func TestUpdateBooking(t *testing.T) {
 	// Setup test data
 	classDate := time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)
@@ -175,13 +189,13 @@ func TestUpdateBooking(t *testing.T) {
 	bookings = map[int]models.Booking{0: booking}
 
 	// Create a class on the test date
-	class := models.Class{
-		ID:        1,
-		Name:      "Pilates",
-		StartDate: models.DailyDate(classDate),
-		EndDate:   models.DailyDate(classDate.AddDate(0, 0, 3)),
-		Capacity:  30,
-	}
+	class := *models.NewClass(
+		1,
+		"Pilates",
+		models.DailyDate(classDate),
+		models.DailyDate(classDate.AddDate(0, 0, 3)),
+		30,
+	)
 	classes = &ClassesStructure{}
 	classes.Insert(class)
 
@@ -213,13 +227,13 @@ func TestUpdateBookingChangingToInvalidDate(t *testing.T) {
 	}}
 
 	// Create a class on the test date
-	class := models.Class{
-		ID:        1,
-		Name:      "Pilates",
-		StartDate: models.DailyDate(classDate),
-		EndDate:   models.DailyDate(classDate.AddDate(0, 0, 3)),
-		Capacity:  30,
-	}
+	class := *models.NewClass(
+		1,
+		"Pilates",
+		models.DailyDate(classDate),
+		models.DailyDate(classDate.AddDate(0, 0, 3)),
+		30,
+	)
 	classes = &ClassesStructure{}
 	classes.Insert(class)
 
@@ -236,6 +250,25 @@ func TestUpdateBookingChangingToInvalidDate(t *testing.T) {
 	if error != nil && error.Error() != "There are no classes in this date" {
 		t.Error("UpdateBooking updated a booking in a date without class")
 	}
+}
+
+func TestUpdateBookingsShouldUpdateClassOnCascade(t *testing.T) {
+	// Prepare test data
+	PopulateClassesWithExamples()
+	PopulateBookingsWithExamples()
+
+	// Change booking 0 to class 1
+	updatedBooking := models.Booking{
+		ID:       0,
+		Name:     "John Doe",
+		Date:     models.DailyDate(time.Date(2023, time.February, 2, 0, 0, 0, 0, time.UTC)),
+	}
+	_, _ = UpdateBookingInStorage(&updatedBooking)
+	if len(classes.classes[0].Bookings) != 1 || len(classes.classes[1].Bookings) != 1 {
+		t.Errorf("UpdateBookings should update class on cascade")
+	}
+
+	tearDownClassTests()
 }
 
 func TestResetBookings(t *testing.T) {

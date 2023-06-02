@@ -19,20 +19,20 @@ func PopulateClassesWithExamples() {
 	// Add sample classes
 	classes = NewClassesStructure()
 
-	classes.Insert(models.Class{
-		ID:        0,
-		Name:      "Pilates",
-		StartDate: models.DailyDate(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
-		EndDate:   models.DailyDate(time.Date(2023, time.February, 1, 0, 0, 0, 0, time.UTC)),
-		Capacity:  30,
-	})
-	classes.Insert(models.Class{
-		ID:        1,
-		Name:      "Yoga",
-		StartDate: models.DailyDate(time.Date(2023, time.February, 2, 0, 0, 0, 0, time.UTC)),
-		EndDate:   models.DailyDate(time.Date(2023, time.March, 1, 0, 0, 0, 0, time.UTC)),
-		Capacity:  25,
-	})
+	classes.Insert(*models.NewClass(
+		0,
+		"Pilates",
+		models.DailyDate(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
+		models.DailyDate(time.Date(2023, time.February, 1, 0, 0, 0, 0, time.UTC)),
+		30,
+	))
+	classes.Insert(*models.NewClass(
+		1,
+		"Yoga",
+		models.DailyDate(time.Date(2023, time.February, 2, 0, 0, 0, 0, time.UTC)),
+		models.DailyDate(time.Date(2023, time.March, 1, 0, 0, 0, 0, time.UTC)),
+		25,
+	))
     lastID = 1
 }
 

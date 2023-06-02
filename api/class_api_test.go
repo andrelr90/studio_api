@@ -26,12 +26,13 @@ func TestStartClassesAPI(t *testing.T) {
 	StartClassesAPI(router)
 
 	// Define the test data
-	testClass := models.Class{
-		Name:      "Pilates2",
-		StartDate: models.DailyDate(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
-		EndDate:   models.DailyDate(time.Date(2023, time.January, 31, 0, 0, 0, 0, time.UTC)),
-		Capacity:  20,
-	}
+	testClass := *models.NewClass(
+		0,
+		"Pilates2",
+		models.DailyDate(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
+		models.DailyDate(time.Date(2023, time.January, 31, 0, 0, 0, 0, time.UTC)),
+		20,
+	)
 	testClassJSON, _ := json.Marshal(testClass)
 
 	// Perform POST request on /classes

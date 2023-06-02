@@ -59,13 +59,15 @@
 				
 				<option value="file1">studio_api_project/main/api/class_api.go (100.0%)</option>
 				
-				<option value="file2">studio_api_project/main/models/daily_date.go (100.0%)</option>
+				<option value="file2">studio_api_project/main/models/class.go (100.0%)</option>
 				
-				<option value="file3">studio_api_project/main/repositories/booking_memory.go (100.0%)</option>
+				<option value="file3">studio_api_project/main/models/daily_date.go (100.0%)</option>
 				
-				<option value="file4">studio_api_project/main/repositories/class_memory.go (100.0%)</option>
+				<option value="file4">studio_api_project/main/repositories/booking_memory.go (100.0%)</option>
 				
-				<option value="file5">studio_api_project/main/repositories/classes_structure.go (100.0%)</option>
+				<option value="file5">studio_api_project/main/repositories/class_memory.go (100.0%)</option>
+				
+				<option value="file6">studio_api_project/main/repositories/classes_structure.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -285,6 +287,34 @@ func UpdateClass(c *gin.Context) <span class="cov7" title="5">{
 		
 		<pre class="file" id="file2" style="display: none">package models
 
+// -------------------------------
+// ------- Class structure -------
+// -------------------------------
+
+type Class struct {
+        ID        int        `json:"id"`
+        Name      string     `json:"name" binding:"required"`
+        StartDate DailyDate  `json:"start_date" binding:"required,ltefield=EndDate" time_format:"2006-01-02" time_utc:"1"`
+        EndDate   DailyDate  `json:"end_date" binding:"required" time_format:"2006-01-02" time_utc:"1"`
+        Capacity  int        `json:"capacity" binding:"required,gte=1"`
+
+        Bookings map[int]int `json:"-"`
+}
+
+func NewClass(ID int, Name string, StartDate DailyDate, EndDate DailyDate, Capacity int) *Class <span class="cov8" title="1">{
+        return &amp;Class{
+                ID:        ID,
+                Name:      Name,
+                StartDate: StartDate,
+                EndDate:   EndDate,
+                Capacity:  Capacity,
+                Bookings:  make(map[int]int),
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package models
+
 import (
         "time"
     "strconv"
@@ -326,7 +356,7 @@ func (date DailyDate) Hash() uint64 <span class="cov1" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file3" style="display: none">package repositories
+		<pre class="file" id="file4" style="display: none">package repositories
 
 import (
         "time"
@@ -338,38 +368,46 @@ import (
 )
 
 var (
-        bookings          map[int]models.Booking = make(map[int]models.Booking) //[]models.Booking
+        bookings          map[int]models.Booking = make(map[int]models.Booking)
         lastBookingID     int = -1
         idBookingMutex    sync.Mutex
 )
 
-func PopulateBookingsWithExamples() <span class="cov1" title="1">{
+func PopulateBookingsWithExamples() <span class="cov8" title="4">{
         // Add sample bookings
         bookings[0] = models.Booking{
                 ID:       0,
                 Name:     "John Doe",
-                Date:     models.DailyDate(time.Now()),
+                Date:     models.DailyDate(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
         }
         bookings[1] =models.Booking{
                 ID:       1,
                 Name:     "Jane Smith",
-                Date:     models.DailyDate(time.Now()),
+                Date:     models.DailyDate(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
         }
         lastBookingID = 1
-}</span>
 
-func GetBookings() []models.Booking <span class="cov6" title="2">{
+        // Adds the id of this booking to the booking list of the class of the day
+        if class := classes.Find(time.Time(bookings[0].Date)); class != nil </span><span class="cov7" title="3">{
+                class.Bookings[bookings[0].ID] = 1
+        }</span>
+        <span class="cov8" title="4">if class := classes.Find(time.Time(bookings[1].Date)); class != nil </span><span class="cov7" title="3">{
+                class.Bookings[bookings[1].ID] = 1
+        }</span>
+}
+
+func GetBookings() []models.Booking <span class="cov4" title="2">{
         var bookingSlice []models.Booking
 
         // Convert the map to a slice
-        for _, value := range bookings </span><span class="cov6" title="2">{
+        for _, value := range bookings </span><span class="cov4" title="2">{
                 bookingSlice = append(bookingSlice, value)
         }</span>
 
-        <span class="cov6" title="2">return bookingSlice</span>
+        <span class="cov4" title="2">return bookingSlice</span>
 }
 
-func GetBooking(id string) *models.Booking <span class="cov6" title="2">{
+func GetBooking(id string) *models.Booking <span class="cov4" title="2">{
         idInt, _ := strconv.Atoi(id)
         if booking, exists := bookings[idInt]; exists </span><span class="cov1" title="1">{
                 return &amp;booking
@@ -378,7 +416,7 @@ func GetBooking(id string) *models.Booking <span class="cov6" title="2">{
         <span class="cov1" title="1">return nil</span>
 }
 
-func CreateBooking(booking models.Booking) *models.Booking <span class="cov6" title="2">{
+func CreateBooking(booking models.Booking) *models.Booking <span class="cov4" title="2">{
         // Verify if there are classes in that day
         if classInDate := classes.Find(time.Time(booking.Date)); classInDate == nil </span><span class="cov1" title="1">{
                 return nil
@@ -393,31 +431,51 @@ func CreateBooking(booking models.Booking) *models.Booking <span class="cov6" ti
         // Add the booking to the slice
         bookings[booking.ID] = booking
 
+        // Adds the id of this booking to the booking list of the class of the day
+        if class := classes.Find(time.Time(booking.Date)); class != nil </span><span class="cov1" title="1">{
+                class.Bookings[booking.ID] = 1
+        }</span>
+
         // Returns the booking with its id
-        return &amp;booking</span>
+        <span class="cov1" title="1">return &amp;booking</span>
 }
 
-func DeleteBooking(id string) error <span class="cov6" title="2">{
+func DeleteBooking(id string) error <span class="cov10" title="5">{
         idInt, _ := strconv.Atoi(id)
-        if _, exists := bookings[idInt]; exists </span><span class="cov1" title="1">{
-                delete(bookings, idInt)
-                return nil
-        }</span>
+        if _, exists := bookings[idInt]; exists </span><span class="cov8" title="4">{
+                // Removes the id of the old booking of the booking list of the class of the day
+                if class := classes.Find(time.Time(bookings[idInt].Date)); class != nil </span><span class="cov8" title="4">{
+                        delete(class.Bookings, bookings[idInt].ID)
+                }</span>
+
+                <span class="cov8" title="4">delete(bookings, idInt)
+                return nil</span>
+        }
         
         <span class="cov1" title="1">return fmt.Errorf("Booking not found")</span>
 }
 
-func UpdateBookingInStorage(updatedBooking *models.Booking) (*models.Booking, error) <span class="cov10" title="3">{
+func UpdateBookingInStorage(updatedBooking *models.Booking) (*models.Booking, error) <span class="cov8" title="4">{
         // Verify if there are classes in that day
         if classInDate := classes.Find(time.Time(updatedBooking.Date)); classInDate == nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("There are no classes in this date")
         }</span>
         
         // Updates the booking
-        <span class="cov6" title="2">if _, exists := bookings[updatedBooking.ID]; exists </span><span class="cov1" title="1">{
-                bookings[updatedBooking.ID] = *updatedBooking
-                return updatedBooking, nil
-        }</span>
+        <span class="cov7" title="3">if _, exists := bookings[updatedBooking.ID]; exists </span><span class="cov4" title="2">{
+                oldBooking := bookings[updatedBooking.ID]
+                // Removes the id of the old booking of the booking list of the class of the day
+                if class := classes.Find(time.Time(oldBooking.Date)); class != nil </span><span class="cov4" title="2">{
+                        delete(class.Bookings, oldBooking.ID)
+                }</span>
+                // Insert the id of the new booking to the booking list of the class of the day
+                <span class="cov4" title="2">if class := classes.Find(time.Time(updatedBooking.Date)); class != nil </span><span class="cov4" title="2">{
+                        class.Bookings[updatedBooking.ID] = 1
+                }</span>
+
+                <span class="cov4" title="2">bookings[updatedBooking.ID] = *updatedBooking
+                return updatedBooking, nil</span>
+        }
 
         // If no Booking with the matching ID is found, return an error
         <span class="cov1" title="1">return nil, fmt.Errorf("Booking not found")</span>
@@ -430,7 +488,7 @@ func ResetBookings() <span class="cov1" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file4" style="display: none">package repositories
+		<pre class="file" id="file5" style="display: none">package repositories
 
 import (
         "time"
@@ -447,24 +505,24 @@ var (
         idMutex    sync.Mutex
 )
 
-func PopulateClassesWithExamples() <span class="cov1" title="1">{
+func PopulateClassesWithExamples() <span class="cov6" title="4">{
         // Add sample classes
         classes = NewClassesStructure()
 
-        classes.Insert(models.Class{
-                ID:        0,
-                Name:      "Pilates",
-                StartDate: models.DailyDate(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
-                EndDate:   models.DailyDate(time.Date(2023, time.February, 1, 0, 0, 0, 0, time.UTC)),
-                Capacity:  30,
-        })
-        classes.Insert(models.Class{
-                ID:        1,
-                Name:      "Yoga",
-                StartDate: models.DailyDate(time.Date(2023, time.February, 2, 0, 0, 0, 0, time.UTC)),
-                EndDate:   models.DailyDate(time.Date(2023, time.March, 1, 0, 0, 0, 0, time.UTC)),
-                Capacity:  25,
-        })
+        classes.Insert(*models.NewClass(
+                0,
+                "Pilates",
+                models.DailyDate(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
+                models.DailyDate(time.Date(2023, time.February, 1, 0, 0, 0, 0, time.UTC)),
+                30,
+        ))
+        classes.Insert(*models.NewClass(
+                1,
+                "Yoga",
+                models.DailyDate(time.Date(2023, time.February, 2, 0, 0, 0, 0, time.UTC)),
+                models.DailyDate(time.Date(2023, time.March, 1, 0, 0, 0, 0, time.UTC)),
+                25,
+        ))
     lastID = 1
 }</span>
 
@@ -495,11 +553,11 @@ func CreateClass(class models.Class) *models.Class <span class="cov1" title="1">
         return &amp;class
 }</span>
 
-func DeleteClass(id string) error <span class="cov3" title="2">{
+func DeleteClass(id string) error <span class="cov5" title="3">{
         // Calls the ClassesStructure remove and validate its result  
         idInt, _ := strconv.Atoi(id)
         result := classes.Remove(idInt)
-        if (result == true) </span><span class="cov1" title="1">{
+        if (result == true) </span><span class="cov3" title="2">{
                 return nil
         }</span> else<span class="cov1" title="1"> {
                 return fmt.Errorf("Class not found")
@@ -546,11 +604,12 @@ func ValidateIntersection(newClass models.Class, creation bool) error <span clas
         <span class="cov1" title="1">return nil</span>
 }</pre>
 		
-		<pre class="file" id="file5" style="display: none">package repositories
+		<pre class="file" id="file6" style="display: none">package repositories
 
 import (
         "sort"
         "time"
+        "strconv"
 
         "studio_api_project/main/models"
 )
@@ -559,47 +618,50 @@ type ClassesStructure struct {
         classes []models.Class
 }
 
-func NewClassesStructure() *ClassesStructure <span class="cov8" title="11">{
+func NewClassesStructure() *ClassesStructure <span class="cov8" title="18">{
         return &amp;ClassesStructure{}
 }</span>
 
-func (s *ClassesStructure) Insert(class models.Class) <span class="cov10" title="16">{
+func (s *ClassesStructure) Insert(class models.Class) <span class="cov8" title="22">{
         // Find the index to insert the class using binary search
-        index := sort.Search(len(s.classes), func(i int) bool </span><span class="cov4" title="3">{
+        index := sort.Search(len(s.classes), func(i int) bool </span><span class="cov5" title="6">{
                 return time.Time(class.StartDate).Before(time.Time(s.classes[i].StartDate))
         }</span>)
 
         // Insert the class at the found index
-        <span class="cov10" title="16">s.classes = append(s.classes[:index], append([]models.Class{class}, s.classes[index:]...)...)</span>
+        <span class="cov8" title="22">s.classes = append(s.classes[:index], append([]models.Class{class}, s.classes[index:]...)...)</span>
 }
 
-func (s *ClassesStructure) Remove(classID int) bool <span class="cov5" title="4">{
+func (s *ClassesStructure) Remove(classID int) bool <span class="cov5" title="5">{
         // Find the index of the class with the given ID
-        for i, class := range s.classes </span><span class="cov4" title="3">{
-                if class.ID == classID </span><span class="cov3" title="2">{
+        for i, class := range s.classes </span><span class="cov4" title="4">{
+                if class.ID == classID </span><span class="cov3" title="3">{
                         // Remove the class from the slice
-                        s.classes = append(s.classes[:i], s.classes[i+1:]...)
-                        return true
-                }</span>
+                        for bookingId, _ := range class.Bookings </span><span class="cov2" title="2">{
+                                DeleteBooking(strconv.Itoa(bookingId))
+                        }</span>
+                        <span class="cov3" title="3">s.classes = append(s.classes[:i], s.classes[i+1:]...)
+                        return true</span>
+                }
         }
 
         // Class with the given ID not found
-        <span class="cov3" title="2">return false</span>
+        <span class="cov2" title="2">return false</span>
 }
 
-func (s *ClassesStructure) Find(date time.Time) *models.Class <span class="cov6" title="5">{
+func (s *ClassesStructure) Find(date time.Time) *models.Class <span class="cov9" title="23">{
         // Perform binary search to find the class on the given date
-        index := sort.Search(len(s.classes), func(i int) bool </span><span class="cov6" title="5">{
+        index := sort.Search(len(s.classes), func(i int) bool </span><span class="cov10" title="33">{
                 return !date.After(time.Time(s.classes[i].EndDate))
         }</span>)
 
         // Check if the found class contains the given date
-        <span class="cov6" title="5">if (index &lt; len(s.classes) &amp;&amp; !date.Before(time.Time(s.classes[index].StartDate))) </span><span class="cov4" title="3">{
+        <span class="cov9" title="23">if (index &lt; len(s.classes) &amp;&amp; !date.Before(time.Time(s.classes[index].StartDate))) </span><span class="cov8" title="19">{
                 return &amp;s.classes[index]
         }</span>
 
         // No class found on the given date
-        <span class="cov3" title="2">return nil</span>
+        <span class="cov4" title="4">return nil</span>
 }
 </pre>
 		
