@@ -1,0 +1,754 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>api: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">studio_api_project/main/api/booking_api.go (100.0%)</option>
+				
+				<option value="file1">studio_api_project/main/api/class_api.go (100.0%)</option>
+				
+				<option value="file2">studio_api_project/main/models/class.go (100.0%)</option>
+				
+				<option value="file3">studio_api_project/main/models/daily_date.go (100.0%)</option>
+				
+				<option value="file4">studio_api_project/main/repositories/booking_memory.go (81.2%)</option>
+				
+				<option value="file5">studio_api_project/main/repositories/class_memory.go (0.0%)</option>
+				
+				<option value="file6">studio_api_project/main/repositories/classes_structure.go (50.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package api
+
+import (
+        "net/http"
+        "strconv"
+        // "fmt"
+        
+        "github.com/gin-gonic/gin"
+
+        "studio_api_project/main/models"
+        "studio_api_project/main/repositories"
+)
+
+// Define API endpoints
+func StartBookingsAPI(router *gin.Engine) <span class="cov1" title="1">{
+        router.GET("/bookings", GetBookings)
+        router.GET("/bookings/:id", GetBooking)
+        router.POST("/bookings", CreateBooking)
+        router.DELETE("/bookings/:id", DeleteBooking)
+        router.PUT("/bookings/:id", UpdateBooking)
+}</span>
+
+// GetBookings returns all class bookings
+func GetBookings(c *gin.Context) <span class="cov4" title="2">{
+        c.JSON(http.StatusOK, repositories.GetBookings())
+}</span>
+
+// GetBooking returns a specific booking by ID
+func GetBooking(c *gin.Context) <span class="cov4" title="2">{
+        id := c.Param("id")
+        if booking := repositories.GetBooking(id); booking == nil </span><span class="cov1" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
+        }</span> else<span class="cov1" title="1"> {
+                c.JSON(http.StatusOK, booking)
+        }</span>
+}
+
+// CreateBooking creates a new class booking
+func CreateBooking(c *gin.Context) <span class="cov10" title="7">{
+        var booking models.Booking
+        if err := c.ShouldBindJSON(&amp;booking); err != nil </span><span class="cov7" title="4">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+        
+        // Validate creation:
+        <span class="cov6" title="3">createdBooking := repositories.CreateBooking(booking)
+        if createdBooking == nil </span><span class="cov1" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "There are no classes in this date"})
+                return
+        }</span>
+
+        <span class="cov4" title="2">c.JSON(http.StatusCreated, createdBooking)</span>
+}
+
+// DeleteBooking deletes a specific booking by ID
+func DeleteBooking(c *gin.Context) <span class="cov4" title="2">{
+        id := c.Param("id")
+        if err := repositories.DeleteBooking(id); err != nil </span><span class="cov1" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+        }</span> else<span class="cov1" title="1"> {
+                c.JSON(http.StatusOK, gin.H{"message": "Class booking deleted successfully"})
+        }</span>
+}
+
+// UpdateClass updates an existing class
+func UpdateBooking(c *gin.Context) <span class="cov7" title="4">{
+        // Get the class booking ID from the request URL parameters
+        bookingID := c.Param("id")
+
+        // Find the class booking with the given ID
+        booking := repositories.GetBooking(bookingID)
+        if booking == nil </span><span class="cov1" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": "Booking not found"})
+                return
+        }</span>
+
+        // Bind the request JSON data to the class booking object
+        <span class="cov6" title="3">if err := c.ShouldBindJSON(&amp;booking); err != nil </span><span class="cov1" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        // Disallow changes in ID
+        <span class="cov4" title="2">if (bookingID != strconv.Itoa(booking.ID)) </span><span class="cov1" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "You are not allowed to change a class booking ID"})
+                return
+        }</span>
+
+        // Update the class in the storage or database (no need to check if the booking exists, as it is tested by the first condition)
+        <span class="cov1" title="1">updatedBooking, _ := repositories.UpdateBookingInStorage(booking)
+
+        c.JSON(http.StatusOK, updatedBooking)</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package api
+
+import (
+        "net/http"
+        "strconv"
+        // "time"
+        
+        "github.com/gin-gonic/gin"
+
+        "studio_api_project/main/models"
+        "studio_api_project/main/repositories"
+)
+
+
+// Define API endpoints
+func StartClassesAPI(router *gin.Engine) <span class="cov1" title="1">{
+        router.GET("/classes", GetClasses)
+        router.GET("/classes/:id", GetClass)
+        router.POST("/classes", CreateClass)
+        router.DELETE("/classes/:id", DeleteClass)
+        router.PUT("/classes/:id", UpdateClass)
+}</span>
+
+// GetClasses returns all classes
+func GetClasses(c *gin.Context) <span class="cov4" title="2">{
+        c.JSON(http.StatusOK, repositories.GetClasses())
+}</span>
+
+// GetClass returns a specific class by ID
+func GetClass(c *gin.Context) <span class="cov4" title="2">{
+        id := c.Param("id")
+        if class := repositories.GetClass(id); class == nil </span><span class="cov1" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": "Class not found"})
+        }</span> else<span class="cov1" title="1"> {
+                c.JSON(http.StatusOK, class)
+        }</span>
+}
+
+// CreateClass creates a new class
+func CreateClass(c *gin.Context) <span class="cov10" title="8">{
+        var class models.Class
+        
+        // // Convert the "start_date" and "end_date" fields to the RFC3339 format
+        // rawData, err := c.GetRawData()
+        // convertedData, err := models.ConvertDateFields(rawData, []string{"start_date", "end_date"})
+        // if err != nil {
+        //         c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to convert date fields"})
+        //         return
+        // }
+
+        // // Bind the modified JSON data to the struct
+        // err = json.Unmarshal(convertedData, &amp;class)
+        // if err != nil {
+        //         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to bind JSON data"})
+        //         return
+        // }
+
+        // Bind the modified JSON data to the struct
+        if err := c.ShouldBindJSON(&amp;class); err != nil </span><span class="cov7" title="5">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        // Validate intersection with other classes
+        <span class="cov5" title="3">if err := models.ValidateIntersection(repositories.GetClasses(), class); err != nil </span><span class="cov1" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov4" title="2">class = *repositories.CreateClass(class)
+
+        c.JSON(http.StatusCreated, class)</span>
+}
+
+// DeleteClass deletes a class by ID
+func DeleteClass(c *gin.Context) <span class="cov4" title="2">{
+        id := c.Param("id")
+        if err := repositories.DeleteClass(id); err != nil </span><span class="cov1" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+        }</span> else<span class="cov1" title="1"> {
+                c.JSON(http.StatusOK, gin.H{"message": "Class deleted successfully"})
+        }</span>
+}
+
+// UpdateClass updates an existing class
+func UpdateClass(c *gin.Context) <span class="cov7" title="5">{
+        // Get the class ID from the request URL parameters
+        classID := c.Param("id")
+        
+        // Find the class with the given ID
+        class := repositories.GetClass(classID)
+        if class == nil </span><span class="cov1" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": "Class not found"})
+                return
+        }</span>
+
+        // Bind the modified JSON data to the struct
+        <span class="cov7" title="4">if err := c.ShouldBindJSON(&amp;class); err != nil </span><span class="cov1" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        // Disallow changes in ID
+        <span class="cov5" title="3">if (classID != strconv.Itoa(class.ID)) </span><span class="cov1" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "You are not allowed to change a class ID"})
+                return
+        }</span>
+
+        // Validate intersection with other classes
+        <span class="cov4" title="2">if err := models.ValidateIntersection(repositories.GetClasses(), *class); err != nil </span><span class="cov1" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        // Update the class in the storage or database (no need to check if the class exists, as it is tested by the first condition)
+        <span class="cov1" title="1">updatedClass, _ := repositories.UpdateClassInStorage(class)
+
+        c.JSON(http.StatusOK, updatedClass)</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package models
+
+import (
+        "time"
+    "fmt"
+)
+
+// -------------------------------
+// ------- Class structure -------
+// -------------------------------
+
+type Class struct {
+        ID        int        `json:"id"`
+        Name      string     `json:"name" binding:"required"`
+        StartDate DailyDate  `json:"start_date" binding:"required,ltefield=EndDate" time_format:"2006-01-02" time_utc:"1"`
+        EndDate   DailyDate  `json:"end_date" binding:"required" time_format:"2006-01-02" time_utc:"1"`
+        Capacity  int        `json:"capacity" binding:"required,gte=1"`
+}
+
+
+
+// --------------------------------------
+// --------- Custom Validators ----------
+// --------------------------------------
+
+// ValidateIntersection checks if there is a class within the given timeframe of a new class
+func ValidateIntersection(classes []Class, newClass Class) error <span class="cov6" title="3">{
+        start := time.Time(newClass.StartDate)
+        end   := time.Time(newClass.EndDate)
+        for _, class := range classes </span><span class="cov10" title="7">{
+                // Check if there is an intersection between the given timeframe and the existing class:
+                if (class.ID != newClass.ID) </span><span class="cov10" title="7">{
+                        if (start.Before(time.Time(class.EndDate)) || start.Equal(time.Time(class.EndDate))) &amp;&amp; 
+                           (end.After(time.Time(class.StartDate)) || end.Equal(time.Time(class.StartDate))) </span><span class="cov4" title="2">{
+                                var errorMessage = fmt.Sprintf("Intersection found with %s", class.Name)
+                                return fmt.Errorf(errorMessage)
+                        }</span>
+                }
+        }
+        // No intersection found:
+        <span class="cov1" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package models
+
+import (
+        "time"
+    "strconv"
+    // "encoding/json"
+)
+
+// func ConvertDateFields(rawData []byte, fields []string) ([]byte, error) {
+//         var jsonData map[string]interface{}
+//         err := json.Unmarshal(rawData, &amp;jsonData)
+//         if err != nil {
+//                 return nil, err
+//         }
+
+//         for _, field := range fields {
+//                 value, ok := jsonData[field].(string)
+//                 if ok {
+//                         convertedValue, err := ConvertToRFC3339(value)
+//                         if err != nil {
+//                                 return nil, err
+//                         }
+//                         jsonData[field] = convertedValue
+//                 }
+//         }
+
+//         return json.Marshal(jsonData)
+// }
+
+// func ConvertToRFC3339(timeStr string) (string, error) {
+//         t, err := time.Parse("2006-01-02", timeStr)
+//         if err != nil {
+//                 return "", err
+//         }
+
+//         return t.Format("2006-01-02T15:04:05Z07:00"), nil
+// }
+
+
+
+
+
+
+
+type DailyDate time.Time
+
+func (date DailyDate) MarshalJSON() ([]byte, error) <span class="cov1" title="1">{
+        t := time.Time(date)
+        formattedDate := t.Format("2006-01-02")
+        return []byte(`"` + formattedDate + `"`), nil
+}</span>
+
+func (date *DailyDate) UnmarshalJSON(data []byte) error <span class="cov10" title="3">{
+        // Strip the surrounding quotes from the JSON string
+        unquotedData, err := strconv.Unquote(string(data))
+        if err != nil </span><span class="cov1" title="1">{
+                return err
+        }</span>
+
+        // Parse the string into a time.Time value using the desired format
+        <span class="cov6" title="2">t, err := time.Parse("2006-01-02", unquotedData)
+        if err != nil </span><span class="cov1" title="1">{
+                return err
+        }</span>
+
+        // Assign the parsed time value to the DailyDate pointer
+        <span class="cov1" title="1">*date = DailyDate(t)
+
+        return nil</span>
+}
+
+func (date DailyDate) Equal(other DailyDate) bool <span class="cov10" title="3">{
+        return time.Time(date).Equal(time.Time(other))
+}</span>
+
+func (date DailyDate) Hash() uint64 <span class="cov1" title="1">{
+        return uint64(time.Time(date).UnixNano())
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package repositories
+
+import (
+        "time"
+    "sync"
+    "strconv"
+        "fmt"
+
+        "studio_api_project/main/models"
+)
+
+var (
+        bookings          map[int]models.Booking = make(map[int]models.Booking) //[]models.Booking
+        lastBookingID     int = -1
+        idBookingMutex    sync.Mutex
+)
+
+func PopulateBookingsWithExamples() <span class="cov0" title="0">{
+        // Add sample bookings
+        bookings[0] = models.Booking{
+                ID:       0,
+                Name:     "John Doe",
+                Date:     models.DailyDate(time.Now()),
+        }
+        bookings[1] =models.Booking{
+                ID:       1,
+                Name:     "Jane Smith",
+                Date:     models.DailyDate(time.Now()),
+        }
+        lastBookingID = 1
+}</span>
+
+func GetBookings() []models.Booking <span class="cov6" title="2">{
+        var bookingSlice []models.Booking
+
+        // Convert the map to a slice
+        for _, value := range bookings </span><span class="cov10" title="3">{
+                bookingSlice = append(bookingSlice, value)
+        }</span>
+
+        <span class="cov6" title="2">return bookingSlice</span>
+}
+
+func GetBooking(id string) *models.Booking <span class="cov6" title="2">{
+        idInt, _ := strconv.Atoi(id)
+        if booking, exists := bookings[idInt]; exists </span><span class="cov1" title="1">{
+                return &amp;booking
+        }</span>
+        // for _, booking := range bookings {
+        //         if strconv.Itoa(booking.ID) == id {
+        //                 return &amp;booking
+        //         }
+        // }
+        <span class="cov1" title="1">return nil</span>
+}
+
+func CreateBooking(booking models.Booking) *models.Booking <span class="cov6" title="2">{
+        // Verify if there are classes in that day
+        if classInDate := classes.Find(time.Time(booking.Date)); classInDate == nil </span><span class="cov1" title="1">{
+                return nil
+        }</span>
+
+        // Generate a new ID by incrementing the last ID
+        <span class="cov1" title="1">idBookingMutex.Lock()
+        lastBookingID++
+        booking.ID = lastBookingID
+        idBookingMutex.Unlock()
+
+        // Add the booking to the slice
+        // bookings = append(bookings, booking)
+        bookings[booking.ID] = booking
+
+        // Returns the booking with its id
+        return &amp;booking</span>
+}
+
+func DeleteBooking(id string) error <span class="cov6" title="2">{
+        idInt, _ := strconv.Atoi(id)
+        if _, exists := bookings[idInt]; exists </span><span class="cov1" title="1">{
+                delete(bookings, idInt)
+                return nil
+        }</span>
+        // for index, booking := range bookings {
+        //         if strconv.Itoa(booking.ID) == id {
+        //                 bookings = append(bookings[:index], bookings[index+1:]...)
+        //                 return nil
+        //                 break
+        //         }
+        // }
+        <span class="cov1" title="1">return fmt.Errorf("Booking not found")</span>
+}
+
+// UpdateBookingInStorage updates a class booking in the storage
+func UpdateBookingInStorage(updatedBooking *models.Booking) (*models.Booking, error) <span class="cov10" title="3">{
+        // Verify if there are classes in that day
+        if classInDate := classes.Find(time.Time(updatedBooking.Date)); classInDate == nil </span><span class="cov6" title="2">{
+                return nil, fmt.Errorf("There are no classes in this date")
+        }</span>
+        
+        // Updates the booking
+        <span class="cov1" title="1">if _, exists := bookings[updatedBooking.ID]; exists </span><span class="cov1" title="1">{
+                bookings[updatedBooking.ID] = *updatedBooking
+                return updatedBooking, nil
+        }</span>
+
+        // If no Booking with the matching ID is found, return an error
+        <span class="cov0" title="0">return nil, fmt.Errorf("Booking not found")</span>
+}
+
+func ResetBookings() <span class="cov0" title="0">{
+        // This function is used mostly for tests
+        bookings = make(map[int]models.Booking)
+        lastBookingID = -1
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package repositories
+
+import (
+        "time"
+    "sync"
+    "strconv"
+        "fmt"
+
+        "studio_api_project/main/models"
+)
+
+var (
+        classes    *ClassesStructure
+        lastID     int = -1
+        idMutex    sync.Mutex
+)
+
+func PopulateClassesWithExamples() <span class="cov0" title="0">{
+        // Add sample classes
+        classes = NewClassesStructure()
+
+        classes.Insert(models.Class{
+                ID:        0,
+                Name:      "Pilates",
+                StartDate: models.DailyDate(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
+                EndDate:   models.DailyDate(time.Date(2023, time.February, 1, 0, 0, 0, 0, time.UTC)),
+                Capacity:  30,
+        })
+        classes.Insert(models.Class{
+                ID:        1,
+                Name:      "Yoga",
+                StartDate: models.DailyDate(time.Date(2023, time.February, 2, 0, 0, 0, 0, time.UTC)),
+                EndDate:   models.DailyDate(time.Date(2023, time.March, 1, 0, 0, 0, 0, time.UTC)),
+                Capacity:  25,
+        })
+    lastID = 1
+}</span>
+
+func GetClasses() []models.Class <span class="cov0" title="0">{
+        return classes.classes
+}</span>
+
+func GetClass(id string) *models.Class <span class="cov0" title="0">{
+        for _, class := range classes.classes </span><span class="cov0" title="0">{
+                if strconv.Itoa(class.ID) == id </span><span class="cov0" title="0">{
+                        return &amp;class
+                }</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+func CreateClass(class models.Class) *models.Class <span class="cov0" title="0">{
+        // Generate a new ID by incrementing the last ID
+        idMutex.Lock()
+        lastID++
+        class.ID = lastID
+        idMutex.Unlock()
+
+        // Add the class to the slice
+        classes.Insert(class)
+
+        // Returns the class with its id
+        return &amp;class
+}</span>
+
+func DeleteClass(id string) error <span class="cov0" title="0">{
+        // for index, class := range classes {
+        //         if strconv.Itoa(class.ID) == id {
+        //                 classes = append(classes[:index], classes[index+1:]...)
+        //                 return nil
+        //                 break
+        //         }
+        // }
+        idInt, _ := strconv.Atoi(id)
+        result := classes.Remove(idInt)
+        if (result == true) </span><span class="cov0" title="0">{
+                return nil
+        }</span> else<span class="cov0" title="0"> {
+                return fmt.Errorf("Class not found")
+        }</span>
+}
+
+// UpdateClassInStorage updates a class in the storage
+func UpdateClassInStorage(updatedClass *models.Class) (*models.Class, error) <span class="cov0" title="0">{
+        // As the list is sorted, updates are done by removing and reinserting the class in the list
+        removeResult := classes.Remove(updatedClass.ID)
+        if (removeResult != true) </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("Class not found")
+        }</span>
+        <span class="cov0" title="0">classes.Insert(*updatedClass)
+        return updatedClass, nil</span>
+        
+        // for i, class := range classes.classes {
+        //         if class.ID == updatedClass.ID {
+        //                 // Update the properties of the found class with the new values
+        //                 classes.classes[i] = *updatedClass
+        //                 return &amp;classes[i], nil
+        //         }
+        // }
+
+        // If no class with the matching ID is found, return an error
+        // return nil, fmt.Errorf("Class not found")
+}
+
+func ResetClasses() <span class="cov0" title="0">{
+        // This function is used mostly for tests
+        classes = NewClassesStructure()
+        lastID = -1
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package repositories
+
+import (
+        "sort"
+        "time"
+
+        "studio_api_project/main/models"
+)
+
+type ClassesStructure struct {
+        classes []models.Class
+}
+
+func NewClassesStructure() *ClassesStructure <span class="cov0" title="0">{
+        return &amp;ClassesStructure{}
+}</span>
+
+func (s *ClassesStructure) Insert(class models.Class) <span class="cov8" title="4">{
+        // Find the index to insert the class using binary search
+        index := sort.Search(len(s.classes), func(i int) bool </span><span class="cov0" title="0">{
+                return time.Time(class.StartDate).Before(time.Time(s.classes[i].StartDate))
+        }</span>)
+
+        // Insert the class at the found index
+        <span class="cov8" title="4">s.classes = append(s.classes[:index], append([]models.Class{class}, s.classes[index:]...)...)</span>
+}
+
+func (s *ClassesStructure) Remove(classID int) bool <span class="cov0" title="0">{
+        // Find the index of the class with the given ID
+        for i, class := range s.classes </span><span class="cov0" title="0">{
+                if class.ID == classID </span><span class="cov0" title="0">{
+                        // Remove the class from the slice
+                        s.classes = append(s.classes[:i], s.classes[i+1:]...)
+                        return true
+                }</span>
+        }
+
+        // Check if the class with the given ID was found
+        // if index &lt; len(s.classes) &amp;&amp; s.classes[index].ID == classID {
+        //         // Remove the class from the slice
+        //         s.classes = append(s.classes[:index], s.classes[index+1:]...)
+        //         return true
+        // }
+
+        // Class with the given ID not found
+        <span class="cov0" title="0">return false</span>
+}
+
+func (s *ClassesStructure) Find(date time.Time) *models.Class <span class="cov10" title="5">{
+        // Perform binary search to find the class on the given date
+        index := sort.Search(len(s.classes), func(i int) bool </span><span class="cov10" title="5">{
+                return !date.After(time.Time(s.classes[i].EndDate))
+        }</span>)
+
+        // Check if the found class contains the given date
+        <span class="cov10" title="5">if (index &lt; len(s.classes) &amp;&amp; !date.Before(time.Time(s.classes[index].StartDate))) </span><span class="cov4" title="2">{
+                return &amp;s.classes[index]
+        }</span>
+
+        // No class found on the given date
+        <span class="cov7" title="3">return nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
