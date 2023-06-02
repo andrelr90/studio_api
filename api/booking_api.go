@@ -19,12 +19,10 @@ func StartBookingsAPI(router *gin.Engine) {
 	router.PUT("/bookings/:id", UpdateBooking)
 }
 
-// GetBookings returns all class bookings
 func GetBookings(c *gin.Context) {
 	c.JSON(http.StatusOK, repositories.GetBookings())
 }
 
-// GetBooking returns a specific booking by ID
 func GetBooking(c *gin.Context) {
 	id := c.Param("id")
 	if booking := repositories.GetBooking(id); booking == nil {
@@ -34,7 +32,6 @@ func GetBooking(c *gin.Context) {
 	}
 }
 
-// CreateBooking creates a new class booking
 func CreateBooking(c *gin.Context) {
 	var booking models.Booking
 	if err := c.ShouldBindJSON(&booking); err != nil {
@@ -52,7 +49,6 @@ func CreateBooking(c *gin.Context) {
 	c.JSON(http.StatusCreated, createdBooking)
 }
 
-// DeleteBooking deletes a specific booking by ID
 func DeleteBooking(c *gin.Context) {
 	id := c.Param("id")
 	if err := repositories.DeleteBooking(id); err != nil {
@@ -62,7 +58,6 @@ func DeleteBooking(c *gin.Context) {
 	}
 }
 
-// UpdateClass updates an existing class
 func UpdateBooking(c *gin.Context) {
 	// Get the class booking ID from the request URL parameters
 	bookingID := c.Param("id")
@@ -86,8 +81,12 @@ func UpdateBooking(c *gin.Context) {
 		return
 	}
 
-	// Update the class in the storage or database (no need to check if the booking exists, as it is tested by the first condition)
-	updatedBooking, _ := repositories.UpdateBookingInStorage(booking)
+	// Update the class in the storage or database
+	updatedBooking, err := repositories.UpdateBookingInStorage(booking)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	c.JSON(http.StatusOK, updatedBooking)
 }
