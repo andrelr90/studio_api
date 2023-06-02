@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"studio_api_project/main/models"
+	"github.com/stretchr/testify/assert"
 )
 
 func tearDownClassTests() {
@@ -224,4 +225,80 @@ func TestResetClasses(t *testing.T) {
 	}
 
 	tearDownClassTests()
+}
+
+func TestValidateIntersection(t *testing.T) {
+	// Create a list of existing classes
+	class0 := models.Class{
+		ID:        0,
+		Name:      "Yoga",
+		StartDate: models.DailyDate(time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)),
+		EndDate:   models.DailyDate(time.Date(2023, time.January, 31, 0, 0, 0, 0, time.UTC)),
+		Capacity:  20,
+	}
+	class1 := models.Class{
+		ID:        1,
+		Name:      "Pilates",
+		StartDate: models.DailyDate(time.Date(2023, time.February, 1, 0, 0, 0, 0, time.UTC)),
+		EndDate:   models.DailyDate(time.Date(2023, time.February, 28, 0, 0, 0, 0, time.UTC)),
+		Capacity:  30,
+	}
+	class2 := models.Class{
+		ID:        3,
+		Name:      "Zumba",
+		StartDate: models.DailyDate(time.Date(2023, time.March, 1, 0, 0, 0, 0, time.UTC)),
+		EndDate:   models.DailyDate(time.Date(2023, time.March, 31, 0, 0, 0, 0, time.UTC)),
+		Capacity:  25,
+	}
+	classes = NewClassesStructure()
+	classes.Insert(class0)
+	classes.Insert(class1)
+	classes.Insert(class2)
+
+	// Create a new class with a conflicting timeframe
+	newClass := models.Class{
+		ID:        3,
+		Name:      "Pilates2",
+		StartDate: models.DailyDate(time.Date(2023, time.February, 15, 0, 0, 0, 0, time.UTC)),
+		EndDate:   models.DailyDate(time.Date(2023, time.March, 15, 0, 0, 0, 0, time.UTC)),
+		Capacity:  35,
+	}
+
+	// Validate the intersection
+	err := ValidateIntersection(newClass)
+
+	// Check that an error is returned with the expected error message
+	expectedError := "Intersection found with Pilates"
+	assert.EqualError(t, err, expectedError)
+
+	// Create a new class with a conflicting timeframe in limits (start equals to another end)
+	newClass = models.Class{
+		ID:        4,
+		Name:      "Pilates2",
+		StartDate: models.DailyDate(time.Date(2023, time.February, 28, 0, 0, 0, 0, time.UTC)),
+		EndDate:   models.DailyDate(time.Date(2023, time.March, 15, 0, 0, 0, 0, time.UTC)),
+		Capacity:  35,
+	}
+
+	// Validate the intersection
+	err = ValidateIntersection(newClass)
+
+	// Check that an error is returned with the expected error message
+	expectedError = "Intersection found with Pilates"
+	assert.EqualError(t, err, expectedError)
+
+	// Create a new class with a non-conflicting timeframe
+	nonConflictingClass := models.Class{
+		ID:        5,
+		Name:      "Dance",
+		StartDate: models.DailyDate(time.Date(2023, time.April, 1, 0, 0, 0, 0, time.UTC)),
+		EndDate:   models.DailyDate(time.Date(2023, time.April, 30, 0, 0, 0, 0, time.UTC)),
+		Capacity:  15,
+	}
+
+	// Validate the intersection for the non-conflicting class
+	err = ValidateIntersection(nonConflictingClass)
+
+	// Check that no error is returned
+	assert.NoError(t, err)
 }

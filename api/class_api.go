@@ -62,7 +62,7 @@ func CreateClass(c *gin.Context) {
 	}
 
 	// Validate intersection with other classes
-	if err := models.ValidateIntersection(repositories.GetClasses(), class); err != nil {
+	if err := repositories.ValidateIntersection(class); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -107,7 +107,7 @@ func UpdateClass(c *gin.Context) {
 	}
 
 	// Validate intersection with other classes
-	if err := models.ValidateIntersection(repositories.GetClasses(), *class); err != nil {
+	if err := repositories.ValidateIntersection(*class); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

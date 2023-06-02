@@ -59,15 +59,13 @@
 				
 				<option value="file1">studio_api_project/main/api/class_api.go (100.0%)</option>
 				
-				<option value="file2">studio_api_project/main/models/class.go (100.0%)</option>
+				<option value="file2">studio_api_project/main/models/daily_date.go (100.0%)</option>
 				
-				<option value="file3">studio_api_project/main/models/daily_date.go (100.0%)</option>
+				<option value="file3">studio_api_project/main/repositories/booking_memory.go (100.0%)</option>
 				
-				<option value="file4">studio_api_project/main/repositories/booking_memory.go (100.0%)</option>
+				<option value="file4">studio_api_project/main/repositories/class_memory.go (100.0%)</option>
 				
-				<option value="file5">studio_api_project/main/repositories/class_memory.go (100.0%)</option>
-				
-				<option value="file6">studio_api_project/main/repositories/classes_structure.go (100.0%)</option>
+				<option value="file5">studio_api_project/main/repositories/classes_structure.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -250,7 +248,7 @@ func CreateClass(c *gin.Context) <span class="cov10" title="8">{
         }</span>
 
         // Validate intersection with other classes
-        <span class="cov5" title="3">if err := models.ValidateIntersection(repositories.GetClasses(), class); err != nil </span><span class="cov1" title="1">{
+        <span class="cov5" title="3">if err := repositories.ValidateIntersection(class); err != nil </span><span class="cov1" title="1">{
                 c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
                 return
         }</span>
@@ -295,7 +293,7 @@ func UpdateClass(c *gin.Context) <span class="cov7" title="5">{
         }</span>
 
         // Validate intersection with other classes
-        <span class="cov4" title="2">if err := models.ValidateIntersection(repositories.GetClasses(), *class); err != nil </span><span class="cov1" title="1">{
+        <span class="cov4" title="2">if err := repositories.ValidateIntersection(*class); err != nil </span><span class="cov1" title="1">{
                 c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
                 return
         }</span>
@@ -308,50 +306,6 @@ func UpdateClass(c *gin.Context) <span class="cov7" title="5">{
 </pre>
 		
 		<pre class="file" id="file2" style="display: none">package models
-
-import (
-        "time"
-    "fmt"
-)
-
-// -------------------------------
-// ------- Class structure -------
-// -------------------------------
-
-type Class struct {
-        ID        int        `json:"id"`
-        Name      string     `json:"name" binding:"required"`
-        StartDate DailyDate  `json:"start_date" binding:"required,ltefield=EndDate" time_format:"2006-01-02" time_utc:"1"`
-        EndDate   DailyDate  `json:"end_date" binding:"required" time_format:"2006-01-02" time_utc:"1"`
-        Capacity  int        `json:"capacity" binding:"required,gte=1"`
-}
-
-
-
-// --------------------------------------
-// --------- Custom Validators ----------
-// --------------------------------------
-
-// ValidateIntersection checks if there is a class within the given timeframe of a new class
-func ValidateIntersection(classes []Class, newClass Class) error <span class="cov6" title="3">{
-        start := time.Time(newClass.StartDate)
-        end   := time.Time(newClass.EndDate)
-        for _, class := range classes </span><span class="cov10" title="7">{
-                // Check if there is an intersection between the given timeframe and the existing class:
-                if (class.ID != newClass.ID) </span><span class="cov10" title="7">{
-                        if (start.Before(time.Time(class.EndDate)) || start.Equal(time.Time(class.EndDate))) &amp;&amp; 
-                           (end.After(time.Time(class.StartDate)) || end.Equal(time.Time(class.StartDate))) </span><span class="cov4" title="2">{
-                                var errorMessage = fmt.Sprintf("Intersection found with %s", class.Name)
-                                return fmt.Errorf(errorMessage)
-                        }</span>
-                }
-        }
-        // No intersection found:
-        <span class="cov1" title="1">return nil</span>
-}
-</pre>
-		
-		<pre class="file" id="file3" style="display: none">package models
 
 import (
         "time"
@@ -431,7 +385,7 @@ func (date DailyDate) Hash() uint64 <span class="cov1" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file4" style="display: none">package repositories
+		<pre class="file" id="file3" style="display: none">package repositories
 
 import (
         "time"
@@ -547,7 +501,7 @@ func ResetBookings() <span class="cov1" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package repositories
+		<pre class="file" id="file4" style="display: none">package repositories
 
 import (
         "time"
@@ -585,12 +539,12 @@ func PopulateClassesWithExamples() <span class="cov1" title="1">{
     lastID = 1
 }</span>
 
-func GetClasses() []models.Class <span class="cov10" title="2">{
+func GetClasses() []models.Class <span class="cov4" title="2">{
         return classes.classes
 }</span>
 
-func GetClass(id string) *models.Class <span class="cov10" title="2">{
-        for _, class := range classes.classes </span><span class="cov10" title="2">{
+func GetClass(id string) *models.Class <span class="cov4" title="2">{
+        for _, class := range classes.classes </span><span class="cov4" title="2">{
                 if strconv.Itoa(class.ID) == id </span><span class="cov1" title="1">{
                         return &amp;class
                 }</span>
@@ -612,7 +566,7 @@ func CreateClass(class models.Class) *models.Class <span class="cov1" title="1">
         return &amp;class
 }</span>
 
-func DeleteClass(id string) error <span class="cov10" title="2">{
+func DeleteClass(id string) error <span class="cov4" title="2">{
         // for index, class := range classes {
         //         if strconv.Itoa(class.ID) == id {
         //                 classes = append(classes[:index], classes[index+1:]...)
@@ -630,7 +584,7 @@ func DeleteClass(id string) error <span class="cov10" title="2">{
 }
 
 // UpdateClassInStorage updates a class in the storage
-func UpdateClassInStorage(updatedClass *models.Class) (*models.Class, error) <span class="cov10" title="2">{
+func UpdateClassInStorage(updatedClass *models.Class) (*models.Class, error) <span class="cov4" title="2">{
         // As the list is sorted, updates are done by removing and reinserting the class in the list
         removeResult := classes.Remove(updatedClass.ID)
         if (removeResult != true) </span><span class="cov1" title="1">{
@@ -656,9 +610,32 @@ func ResetClasses() <span class="cov1" title="1">{
         classes = NewClassesStructure()
         lastID = -1
 }</span>
-</pre>
+
+
+
+// --------------------------------------
+// --------- Custom Validators ----------
+// --------------------------------------
+
+// ValidateIntersection checks if there is a class within the given timeframe of a new class
+func ValidateIntersection(newClass models.Class) error <span class="cov6" title="3">{
+        start := time.Time(newClass.StartDate)
+        end   := time.Time(newClass.EndDate)
+        for _, class := range classes.classes </span><span class="cov10" title="7">{
+                // Check if there is an intersection between the given timeframe and the existing class:
+                if (class.ID != newClass.ID) </span><span class="cov10" title="7">{
+                        if (start.Before(time.Time(class.EndDate)) || start.Equal(time.Time(class.EndDate))) &amp;&amp; 
+                           (end.After(time.Time(class.StartDate)) || end.Equal(time.Time(class.StartDate))) </span><span class="cov4" title="2">{
+                                var errorMessage = fmt.Sprintf("Intersection found with %s", class.Name)
+                                return fmt.Errorf(errorMessage)
+                        }</span>
+                }
+        }
+        // No intersection found:
+        <span class="cov1" title="1">return nil</span>
+}</pre>
 		
-		<pre class="file" id="file6" style="display: none">package repositories
+		<pre class="file" id="file5" style="display: none">package repositories
 
 import (
         "sort"
@@ -671,18 +648,18 @@ type ClassesStructure struct {
         classes []models.Class
 }
 
-func NewClassesStructure() *ClassesStructure <span class="cov9" title="10">{
+func NewClassesStructure() *ClassesStructure <span class="cov8" title="11">{
         return &amp;ClassesStructure{}
 }</span>
 
-func (s *ClassesStructure) Insert(class models.Class) <span class="cov10" title="13">{
+func (s *ClassesStructure) Insert(class models.Class) <span class="cov10" title="16">{
         // Find the index to insert the class using binary search
-        index := sort.Search(len(s.classes), func(i int) bool </span><span class="cov1" title="1">{
+        index := sort.Search(len(s.classes), func(i int) bool </span><span class="cov4" title="3">{
                 return time.Time(class.StartDate).Before(time.Time(s.classes[i].StartDate))
         }</span>)
 
         // Insert the class at the found index
-        <span class="cov10" title="13">s.classes = append(s.classes[:index], append([]models.Class{class}, s.classes[index:]...)...)</span>
+        <span class="cov10" title="16">s.classes = append(s.classes[:index], append([]models.Class{class}, s.classes[index:]...)...)</span>
 }
 
 func (s *ClassesStructure) Remove(classID int) bool <span class="cov5" title="4">{
