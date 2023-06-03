@@ -4,7 +4,7 @@ This repository contains the implementation of an API for managing classes and b
 ## Installing
 This project was developed in `go version go1.20.4 windows/386`. If you don't have Go installed yet, you can get it from https://go.dev/doc/install. 
 
-If you need to reset the dependencies of this project, you can delete the files `/src/go.mod` and `/src/go.sum` execute the following in the `/src` folder:
+If you need to reset the dependencies of this project, you can delete the files `/src/go.mod` and `/src/go.sum` and execute the following in the `/src` folder:
 ```
 go mod init studio_api/src
 go mod init tidy
